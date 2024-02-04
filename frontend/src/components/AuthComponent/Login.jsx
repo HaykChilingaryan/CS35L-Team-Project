@@ -14,6 +14,7 @@ function Login() {
               <div className="card-body p-5 text-center">
                 <div className="mb-md-5 mt-md-4 pb-1">
                   <h2 className="fw-bold mb-2 text-uppercase pb-5">Login</h2>
+                  <img src="/frontend/src/assets/images/TaskifyLogo.png" alt="Taskify Logo" />
                   <div className="form-outline form-white mb-4">
                     <input
                       type="text"

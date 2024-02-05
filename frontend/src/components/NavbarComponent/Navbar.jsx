@@ -4,7 +4,7 @@ import Navbar from "react-bootstrap/Navbar";
 
 function Navigation() {
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark align-items-center">
+    <nav className=" navbar fixed-top navbar-expand-lg navbar-dark bg-dark align-items-center">
       <div className="container-fluid">
         <a className="navbar-brand" href="#">
           Taskify

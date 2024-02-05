@@ -2,6 +2,11 @@
   font-family: 'Rajdhani';
 }
 
+.menu-button:hover {
+  background-color: black;
+  color: white;
+}
+
 .gradient-custom {
   /* fallback for old browsers */
   background: #6a11cb;

@@ -3,6 +3,7 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { Offcanvas } from "bootstrap";
 import logo from "../AuthComponent/TaskifyLogo.png";
+import "./Sidebar.css"
 
 
 function Sidebar() {
@@ -18,12 +19,12 @@ function Sidebar() {
       <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1" id="offcanvasWithBothOptions" aria-labelledby="offcanvasWithBothOptionsLabel">
         <div class="offcanvas-header">
           <h5 class="fs-3 fw-bold offcanvas-title" id="offcanvasWithBothOptionsLabel">TASKIFY</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          <button type="button" class="btn-close bg-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column">
-          <ul class="fs-5"><i class="bi bi-house-door"></i> Dashboard</ul>
-          <ul class="fs-5"><i class="bi bi-person"></i> Profile</ul>
-          <ul class="fs-5 mt-auto"><i class="bi bi-box-arrow-right"></i> Logout</ul>
+          <ul><button type="button" className="menu-button fs-5 btn"><i class="bi bi-house-door"></i> Dashboard</button></ul>
+          <ul><button type="button" className="menu-button fs-5 btn"><i class="bi bi-person"></i> Profile</button></ul>
+          <ul class="mt-auto"><button type="button" className="menu-button fs-5 btn"><i class="bi bi-box-arrow-right"></i> Logout</button></ul>
         </div>
       </div>
     </section>

@@ -1,7 +1,3 @@
-import Container from "react-bootstrap/Container";
-import Nav from "react-bootstrap/Nav";
-import Navbar from "react-bootstrap/Navbar";
-
 function Navigation() {
   return (
     <nav className=" navbar fixed-top navbar-expand-lg navbar-dark bg-dark align-items-center">
@@ -17,23 +13,7 @@ function Navigation() {
           aria-controls="navbarNavDropdown"
           aria-expanded="false"
           aria-label="Toggle navigation"
-        >
-          <span className="navbar-toggler-icon" />
-        </button>
-        <div className="collapse navbar-collapse" id="navbarNavDropdown">
-          <ul className="navbar-nav">
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                Login
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                Request Account
-              </a>
-            </li>
-          </ul>
-        </div>
+        ></button>
       </div>
     </nav>
   );

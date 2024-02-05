@@ -17,13 +17,13 @@ function Sidebar() {
 
       <div class="offcanvas offcanvas-start" data-bs-scroll="true" tabindex="-1" id="offcanvasWithBothOptions" aria-labelledby="offcanvasWithBothOptionsLabel">
         <div class="offcanvas-header">
-          <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">TASKIFY</h5>
+          <h5 class="fs-3 fw-bold offcanvas-title" id="offcanvasWithBothOptionsLabel">TASKIFY</h5>
           <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column">
-          <ul><i class="bi bi-house-door"></i> Dashboard</ul>
-          <ul><i class="bi bi-person"></i> Profile</ul>
-          <ul class="mt-auto"><i class="bi bi-box-arrow-right"></i> Logout</ul>
+          <ul class="fs-5"><i class="bi bi-house-door"></i> Dashboard</ul>
+          <ul class="fs-5"><i class="bi bi-person"></i> Profile</ul>
+          <ul class="fs-5 mt-auto"><i class="bi bi-box-arrow-right"></i> Logout</ul>
         </div>
       </div>
     </section>

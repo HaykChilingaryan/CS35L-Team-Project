@@ -1,8 +1,4 @@
-import Container from "react-bootstrap/Container";
-import Nav from "react-bootstrap/Nav";
-import Navbar from "react-bootstrap/Navbar";
 import { Offcanvas } from "bootstrap";
-import logo from "../AuthComponent/TaskifyLogo.png";
 import "./Sidebar.css";
 
 function Sidebar() {
@@ -19,6 +15,7 @@ function Sidebar() {
             <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
           </svg>
         </button>
+        <div className="fs-4"> TASKIFY </div>
         <div className="fs-4 pe-2">username</div>
       </div>
 

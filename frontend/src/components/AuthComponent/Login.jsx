@@ -9,13 +9,14 @@ function Login() {
         <div className="row d-flex justify-content-center align-items-center h-100">
           <div className="col-12 col-md-8 col-lg-4 col-xl-5">
             <div
-              className="card bg-dark text-white"
+              className="card bg-black text-white"
               style={{ borderRadius: "1rem" }}
             >
               <div className="card-body p-5 text-center">
                 <div className="mb-md-5 mt-md-4 pb-1">
                   <img className="w-75 h-75 rounded mx-auto d-block text-center" src={logo} alt="Taskify Logo" />
-                  <div className="form-outline form-white mb-4">
+                  <div className="input-group form-white mb-4 column d-flex">
+                    <span className="input-group-text"><i class="bi bi-person"></i></span>
                     <input
                       type="text"
                       id="typeEmailX"
@@ -23,8 +24,9 @@ function Login() {
                       placeholder="Username"
                     />
                   </div>
-                  <div className="form-outline form-white mb-4">
-                    <input
+                  <div className="input-group form-white mb-4 column d-flex">
+                  <span className="input-group-text"><i class="bi bi-lock"></i></span>                    
+                  <input
                       type="password"
                       id="typePasswordX"
                       className="form-control form-control-lg"

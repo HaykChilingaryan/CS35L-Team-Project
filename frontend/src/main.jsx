@@ -6,8 +6,8 @@ import Login from "./components/AuthComponent/Login.jsx";
 import Sidebar from "./components/SideBarComponent/Sidebar.jsx";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    {/* <Navigation />
-    <Login /> */}
+    {/*<Navigation />*/}
     <Sidebar />
+    <Login />
   </React.StrictMode>
 );

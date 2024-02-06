@@ -26,3 +26,12 @@ input[type="checkbox"]{
 .custom-checkbox input:checked + .checkmark{
   background: url(check2.svg) center/100%;
 }
+
+.custom-checkbox:has(input:checked) ~ .card-body {
+  opacity: 0.3;
+}
+
+.task{
+  border-bottom: 1px solid black;
+  width: 100%;
+}

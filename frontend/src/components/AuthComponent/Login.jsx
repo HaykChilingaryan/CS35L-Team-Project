@@ -20,18 +20,18 @@ function Login() {
                     <input
                       type="text"
                       id="typeEmailX"
-                      className="form-control form-control-lg"
+                      className="inp form-control form-control-lg"
                       placeholder="Username"
                     />
                   </div>
                   <div className="input-group form-white mb-4 column d-flex">
-                  <span className="input-group-text"><i class="bi bi-lock"></i></span>                    
-                  <input
-                      type="password"
-                      id="typePasswordX"
-                      className="form-control form-control-lg"
-                      placeholder="Password"
-                    />
+                    <span className="input-group-text"><i class="bi bi-lock"></i></span>                    
+                    <input
+                        type="password"
+                        id="typePasswordX"
+                        className="inp form-control form-control-lg"
+                        placeholder="Password"
+                      />
                   </div>
                   <button
                     className="btn btn-outline-light btn-lg px-5"
@@ -39,6 +39,14 @@ function Login() {
                   >
                     Login
                   </button>
+                  <div>
+                    <button 
+                      className="btn btn-ra mt-3"
+                      type="submit"
+                    >
+                      Request Access
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -7,7 +7,7 @@ import Sidebar from "./components/SideBarComponent/Sidebar.jsx";
 import TaskList from "./components/TaskListComponent/TaskList.jsx";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <Sidebar />
-    <TaskList />
+    <Login />
+    {/* <TaskList /> */}
   </React.StrictMode>
 );

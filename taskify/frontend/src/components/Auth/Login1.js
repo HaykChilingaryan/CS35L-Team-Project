@@ -33,7 +33,7 @@ const Login1 = ({ onLoginSuccess }) => {
       });
 
       if (response.ok) {
-        navigate("/profile");
+        navigate("/tasklist");
       } else {
         setLoginInfo({
           username: "",

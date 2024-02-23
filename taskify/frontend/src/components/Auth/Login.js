@@ -41,13 +41,13 @@ const Login = ({ onLoginSuccess }) => {
       });
 
       if (response.ok) {
-        window.location.href = "/profile";
+        window.location.href = "/tasklist";
         onLoginSuccess();
       } else {
         const loginFailedMessage =
           "Login failed. Please check your credentials.";
         window.location.href = `/?loginMessage=${encodeURIComponent(
-          loginFailedMessage
+          loginFailedMessages
         )}`;
       }
     } catch (error) {

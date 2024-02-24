@@ -23,8 +23,8 @@ class UserLoginView(APIView):
             if user is not None:
                 login(request, user)
                 token, created = Token.objects.get_or_create(user=user)
-                success_message = f"User {user.username} has successfully logged in."
-                return Response({'message': success_message, 'token': token.key}, status=status.HTTP_200_OK)
+                success_message = f"User {user} has successfully logged in."
+                return Response({'message': success_message, "username": user.username, "token": token.key}, status=status.HTTP_200_OK)
             else:
                 return Response({'message': 'Incorrect username or password.'}, status=status.HTTP_401_UNAUTHORIZED)
         else:

@@ -1,36 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
 import logo from "../../../static/images/TaskifyLogo.png";
 import "./Login.css";
 
-const Login = ({ onLoginSuccess }) => {
+const Login1 = ({ onLoginSuccess }) => {
   const [loginInfo, setLoginInfo] = useState({
     username: "",
     password: "",
+    message: "",
   });
-  const [loginMessage, setLoginMessage] = useState("");
-  const location = useLocation();
 
-  useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const message = queryParams.get("loginMessage");
-    if (message) {
-      setLoginMessage(message);
-    }
-  }, [location.search]);
-
+  const navigate = useNavigate();
   const handleInputChange = (e) => {
-    setLoginInfo({
-      ...loginInfo,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setLoginInfo((prevLoginInfo) => ({
+      ...prevLoginInfo,
+      [name]: value,
+    }));
   };
 
   const handleLogin = async () => {
-    const { username, password } = loginInfo;
-
     try {
+      const { username, password } = loginInfo;
       console.log(JSON.stringify({ username, password }));
       const response = await fetch("http://localhost:8000/backend/auth/login", {
         method: "POST",
@@ -41,24 +33,23 @@ const Login = ({ onLoginSuccess }) => {
       });
 
       if (response.ok) {
-        window.location.href = "/tasklist";
-        onLoginSuccess();
+        const data = await response.json();
+        localStorage.setItem("authToken", data["token"]);
+        onLoginSuccess(data["username"]);
+        navigate("/tasklist");
       } else {
-        const loginFailedMessage =
-          "Login failed. Please check your credentials.";
-        window.location.href = `/?loginMessage=${encodeURIComponent(
-          loginFailedMessages
-        )}`;
+        setLoginInfo({
+          username: "",
+          password: "",
+          message: "Invalid username or password",
+        });
       }
     } catch (error) {
-      const loginErrorMessage = "Error during Login.";
-      window.location.href = `/?loginMessage=${encodeURIComponent(
-        loginErrorMessage
-      )}`;
+      console.error("Login error:", error);
     }
   };
 
-  const jiggleEffect = loginMessage ? "jiggle" : "";
+  const jiggleEffect = loginInfo.message ? "jiggle" : "";
   return (
     <div className="container py-5 h-100">
       <div className="row d-flex justify-content-center align-items-center h-100">
@@ -85,6 +76,7 @@ const Login = ({ onLoginSuccess }) => {
                     placeholder="Username"
                     name="username"
                     onChange={handleInputChange}
+                    value={loginInfo.username}
                   />
                 </div>
                 <div className="input-group form-white mb-4 column d-flex">
@@ -98,6 +90,7 @@ const Login = ({ onLoginSuccess }) => {
                     className="form-control form-control-lg"
                     placeholder="Password"
                     onChange={handleInputChange}
+                    value={loginInfo.password}
                   />
                 </div>
                 <button
@@ -107,9 +100,9 @@ const Login = ({ onLoginSuccess }) => {
                 >
                   Login
                 </button>
-                {loginMessage && (
+                {loginInfo.message && (
                   <div className={`mt-3 text-light ${jiggleEffect}`}>
-                    {loginMessage}
+                    {loginInfo.message}
                   </div>
                 )}
               </div>
@@ -126,4 +119,4 @@ const Login = ({ onLoginSuccess }) => {
   );
 };
 
-export default Login;
+export default Login1;

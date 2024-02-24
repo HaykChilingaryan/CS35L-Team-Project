@@ -1,10 +1,8 @@
 import React from "react";
 import "bootstrap/dist/css/bootstrap.css";
 import "./Sidebar.css";
-import { Offcanvas } from "bootstrap";
-import { useState } from "react";
 
-const Sidebar = () => {
+const Sidebar = ({ username }) => {
   return (
     <section>
       <div className="d-flex top-bar">
@@ -30,7 +28,7 @@ const Sidebar = () => {
           </svg>
         </button>
         <div className="fs-4"> TASKIFY </div>
-        <div className="fs-4 pe-2">username</div>
+        <div className="fs-4 pe-2">{username}</div>
       </div>
 
       <div

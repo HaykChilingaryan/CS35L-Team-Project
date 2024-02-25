@@ -6,8 +6,14 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 
 # Create your models here.
 class Task(models.Model):
+    STATUS_CHOICES = [
+        ('InProgress', 'In Progress'),
+        ('Complete', 'Complete'),
+    ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255, default = "untitled")
     description = models.CharField(max_length=1023)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='InProgress')
     due_date = models.DateTimeField()
     created_at = models.DateTimeField(default=datetime.now)
     assigned_user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='tasks')

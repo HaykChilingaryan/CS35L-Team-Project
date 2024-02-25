@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import User
+from .models import User, Task
 
 class UserAuthenticationSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=255)
@@ -20,3 +20,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'password', 'first_name', 'last_name', 'created_at', 'is_manager']
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ["id","title", "description", "due_date", "assigned_user", "created_at","status"]

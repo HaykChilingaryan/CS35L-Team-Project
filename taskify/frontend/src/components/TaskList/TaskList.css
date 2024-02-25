@@ -32,6 +32,13 @@ input[type="checkbox"]{
 }
 
 .task{
-  border-bottom: 1px solid black;
+  border-top: 1px solid black;
   width: 100%;
+}
+.task-container {
+  width: 100%;
+  border: 1px solid #ccc; /* Border color */
+  border-radius: 8px; /* Rounded corners */
+  padding: 10px; /* Adjust the padding as needed */
+  margin-bottom: 10px; /* Adjust the margin as needed */
 }

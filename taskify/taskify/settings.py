@@ -55,6 +55,8 @@ REST_FRAMEWORK = {
     ],
 }
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
 # Set the session timeout (in seconds)
 SESSION_COOKIE_AGE = 60 * 15  # 15 minutes, adjust as needed
 

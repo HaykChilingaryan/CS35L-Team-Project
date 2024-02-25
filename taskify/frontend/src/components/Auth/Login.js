@@ -4,7 +4,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import logo from "../../../static/images/TaskifyLogo.png";
 import "./Login.css";
 
-const Login1 = ({ onLoginSuccess }) => {
+const Login1 = () => {
   const [loginInfo, setLoginInfo] = useState({
     username: "",
     password: "",
@@ -24,7 +24,7 @@ const Login1 = ({ onLoginSuccess }) => {
     try {
       const { username, password } = loginInfo;
       console.log(JSON.stringify({ username, password }));
-      const response = await fetch("http://localhost:8000/backend/auth/login", {
+      const response = await fetch("http://localhost:8000/backend/api/login/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -34,8 +34,8 @@ const Login1 = ({ onLoginSuccess }) => {
 
       if (response.ok) {
         const data = await response.json();
-        localStorage.setItem("authToken", data["token"]);
-        onLoginSuccess(data["username"]);
+        sessionStorage.setItem("session", data["session"]);
+        console.log("From Login: " + data["session"]);
         navigate("/tasklist");
       } else {
         setLoginInfo({

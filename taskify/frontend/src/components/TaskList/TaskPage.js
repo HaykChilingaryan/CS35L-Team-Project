@@ -10,6 +10,7 @@ const TaskPage = () => {
   const [error, setError] = useState(null);
   const [inProgressTasks, setInProgressTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
+  const [popup, setPopup] = useState(false);
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -22,9 +23,18 @@ const TaskPage = () => {
   const handleFilterChange = (e) => {
     setFilterValue(e.target.value);
   };
-  const handleCreateTask = () => {
+
+  const handleCreateTaskBtn = () => {
+    setPopup(!popup);
     console.log("Creating a new task");
   };
+
+  const handleCreateTaskClose = () => {
+    setPopup(false);
+  };
+
+  const handleCreateTask = () => {};
+
   const handleDeleteTask = () => {
     console.log("Delete Task");
   };
@@ -93,11 +103,55 @@ const TaskPage = () => {
         <h1>Task List</h1>
         <button
           className="btn btn-secondary"
-          onClick={handleCreateTask}
+          onClick={handleCreateTaskBtn}
           style={{ fontSize: "1.2rem" }}
         >
           Create Task
         </button>
+        {popup ? (
+          <div className="popup d-flex flex-column">
+            <button
+              onClick={handleCreateTaskClose}
+              className="align-self-end btn btn-close"
+            ></button>
+            <div className="form-task mb-4 flex-column d-flex justify-content-evenly">
+              <span className="input-description">Task Title</span>
+              <input
+                type="text"
+                name="tasktitle"
+                id="typeTaskTitleX"
+                className="input-task"
+              />
+              <span className="input-description">Task Description</span>
+
+              <input
+                type="text"
+                name="taskdescription"
+                id="typeTaskDescriptionX"
+                className="input-task"
+              />
+              <span className="input-description">Due Date</span>
+
+              <input
+                type="date"
+                name="taskduedate"
+                id="typeTaskDueDateX"
+                className="input-task"
+              />
+              <span className="input-description">Assigned User</span>
+
+              <input
+                type="text"
+                name="taskassigneduser"
+                id="typeTaskAsssignedUserX"
+                className="input-task"
+              />
+            </div>
+            <button className="btn btn-dark btn-ct">Create Task</button>
+          </div>
+        ) : (
+          ""
+        )}
       </div>
       <ul className="nav nav-tabs">
         <li className="nav-item">

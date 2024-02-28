@@ -2,6 +2,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "./Sidebar.css";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { Offcanvas } from "bootstrap";
 
 const Sidebar = () => {
   const [username, setUsername] = useState(null);

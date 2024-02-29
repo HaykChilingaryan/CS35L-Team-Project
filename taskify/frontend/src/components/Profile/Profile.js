@@ -47,6 +47,8 @@ const Profile = () => {
                   className="form-control"
                   placeholder={username}
                   value=""
+                  style={{width: '250px'}}
+                  readOnly
                 />
               </div>
             </div>
@@ -56,8 +58,10 @@ const Profile = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="company"
+                  placeholder="Company"
                   value=""
+                  style={{width: '250px'}}
+                  readOnly
                 />
               </div>
             </div>
@@ -69,6 +73,8 @@ const Profile = () => {
                   className="form-control"
                   placeholder={firstName}
                   value=""
+                  style={{width: '250px'}}
+                  readOnly                
                 />
               </div>
             </div>
@@ -80,6 +86,8 @@ const Profile = () => {
                   className="form-control"
                   placeholder={lastName}
                   value=""
+                  style={{width: '250px'}}
+                  readOnly
                 />
               </div>
             </div>
@@ -91,12 +99,14 @@ const Profile = () => {
                   className="form-control"
                   placeholder="*****"
                   value=""
+                  style={{width: '250px'}}              
                 />
               </div>
               <div className="mt-2">
                 <button
                   className="btn btn-sm btn-outline-dark px-5"
                   type="button"
+                  style={{width: '200px'}}
                 >
                   change password
                 </button>

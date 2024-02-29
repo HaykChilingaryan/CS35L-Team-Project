@@ -1,12 +1,20 @@
 import "bootstrap/dist/css/bootstrap.css";
 import "./Sidebar.css";
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Offcanvas } from "bootstrap";
 
 const Sidebar = () => {
   const [username, setUsername] = useState(null);
   const location = useLocation();
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    sessionStorage.setItem("session", "");
+    setUsername(null);
+    navigate("/");
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -97,7 +105,12 @@ const Sidebar = () => {
             </button>
           </ul>
           <ul className="mt-auto">
-            <button type="button" className="menu-button fs-5 btn">
+            <button
+              onClick={handleLogout}
+              type="button"
+              className="menu-button fs-5 btn"
+              data-bs-dismiss="offcanvas"
+            >
               <i className="bi bi-box-arrow-right"></i> Logout
             </button>
           </ul>

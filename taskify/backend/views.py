@@ -124,8 +124,10 @@ def get_user_from_session(request):
         
         if user:
             # Serialize the user data as needed
-            user_data = user.username
-            return Response({'username': user_data, "id": user.id})
+            username = user.username
+            firstName = user.first_name
+            lastName = user.last_name
+            return Response({'username': username,'first_name': firstName, 'last_name': lastName, "id": user.id})
         else:
             return Response({'detail': 'User not found'}, status=404)
     except Exception as e:

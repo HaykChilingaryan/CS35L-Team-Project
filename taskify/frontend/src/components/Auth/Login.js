@@ -23,7 +23,6 @@ const Login1 = () => {
   const handleLogin = async () => {
     try {
       const { username, password } = loginInfo;
-      console.log(JSON.stringify({ username, password }));
       const response = await fetch("http://localhost:8000/backend/api/login/", {
         method: "POST",
         headers: {
@@ -31,11 +30,16 @@ const Login1 = () => {
         },
         body: JSON.stringify({ username, password }),
       });
-
+      const data = await response.json();
       if (response.ok) {
-        const data = await response.json();
-        sessionStorage.setItem("session", data["session"]);
-        console.log("From Login: " + data["session"]);
+        await new Promise((resolve) => {
+          console.log(data);
+          sessionStorage.setItem("session", data["session"]);
+          console.log("From Login: " + data["session"]);
+          while (sessionStorage.getItem("session") == null)
+            console.log("Logging In");
+          resolve(); // Resolving the promise to signal completion
+        });
         navigate("/tasklist");
       } else {
         setLoginInfo({

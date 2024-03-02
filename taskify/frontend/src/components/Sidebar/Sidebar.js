@@ -11,11 +11,18 @@ const Sidebar = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    sessionStorage.setItem("session", "");
-    setUsername(null);
+    sessionStorage.setItem("session", null);
+    setUsername("");
     navigate("/");
   };
 
+  const handleProfileNavigation = () => {
+    navigate("/profile");
+  };
+
+  const handleTaskListNavigation = () => {
+    navigate("/tasklist");
+  };
   useEffect(() => {
     const getUser = async () => {
       try {
@@ -90,7 +97,12 @@ const Sidebar = () => {
         </div>
         <div className="offcanvas-body d-flex flex-column">
           <ul>
-            <button type="button" className="menu-button fs-5 btn">
+            <button
+              onClick={handleTaskListNavigation}
+              type="button"
+              className="menu-button fs-5 btn"
+              data-bs-dismiss="offcanvas"
+            >
               <i className="bi bi-list-ul"></i> Task List
             </button>
           </ul>
@@ -100,7 +112,12 @@ const Sidebar = () => {
             </button>
           </ul>
           <ul>
-            <button type="button" className="menu-button fs-5 btn">
+            <button
+              onClick={handleProfileNavigation}
+              type="button"
+              className="menu-button fs-5 btn"
+              data-bs-dismiss="offcanvas"
+            >
               <i className="bi bi-person"></i> Profile
             </button>
           </ul>

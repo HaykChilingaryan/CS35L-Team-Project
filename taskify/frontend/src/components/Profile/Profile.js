@@ -1,12 +1,23 @@
 import React, { Component, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
+import "./Profile.css";
 
 const Profile = () => {
   const [username, setUsername] = useState(null);
   const [firstName, setFirstName] = useState(null);
   const [lastName, setLastName] = useState(null);
+  const [password, setPassword] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const location = useLocation();
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setPassword((prevPassword) => ({
+      ...prevPassword,
+      [name]: value,
+    }));
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -47,34 +58,34 @@ const Profile = () => {
                   className="form-control"
                   placeholder={username}
                   value=""
-                  style={{width: '250px'}}
-                  readOnly
+                  style={{ width: "235px" }}
+                  disabled
                 />
               </div>
             </div>
             <div className="row mt-2">
-              <div classNamess="col-md-6">
+              <div className="col-md-6">
                 <label className="labels">Company</label>
                 <input
                   type="text"
                   className="form-control"
                   placeholder="Company"
                   value=""
-                  style={{width: '250px'}}
-                  readOnly
+                  style={{ width: "235px" }}
+                  disabled
                 />
               </div>
             </div>
             <div className="row mt-2">
               <div className="col-md-6">
-                <label class="labels">First Name</label>
+                <label className="labels">First Name</label>
                 <input
                   type="text"
                   className="form-control"
                   placeholder={firstName}
                   value=""
-                  style={{width: '250px'}}
-                  readOnly                
+                  style={{ width: "235px" }}
+                  disabled
                 />
               </div>
             </div>
@@ -86,29 +97,37 @@ const Profile = () => {
                   className="form-control"
                   placeholder={lastName}
                   value=""
-                  style={{width: '250px'}}
-                  readOnly
+                  style={{ width: "235px" }}
+                  disabled
                 />
               </div>
             </div>
             <div className="row mt-2">
               <div className="col-md-6">
-                <label className="labels">Password</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="*****"
-                  value=""
-                  style={{width: '250px'}}              
-                />
+                <label className="labels">Reset Password</label>
+                <div className="d-flex border rounded">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    className="form-control border-0"
+                    onChange={handleInputChange}
+                    style={{ width: "250px" }}
+                  />
+                  <button
+                    className="btn  btn-md border-0"
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    <i className="bi bi-eye"></i>
+                  </button>
+                </div>
               </div>
               <div className="mt-2">
                 <button
                   className="btn btn-sm btn-outline-dark px-5"
                   type="button"
-                  style={{width: '200px'}}
+                  style={{ width: "200px" }}
                 >
-                  change password
+                  Change Password
                 </button>
               </div>
             </div>

@@ -2,6 +2,7 @@ import React, { Component, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
 import "./Profile.css";
+import { getCookie } from "../../actions/auth/auth";
 
 const Profile = () => {
   const [username, setUsername] = useState(null);
@@ -21,11 +22,18 @@ const Profile = () => {
   };
 
   useEffect(() => {
+    const authToken = getCookie("csrftoken");
     const getUser = async () => {
       try {
-        const sessionId = sessionStorage.getItem("session");
         const response = await fetch(
-          `http://localhost:8000/backend/auth/session/user?session_id=${sessionId}`
+          `http://localhost:8000/backend/users/me/`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
         );
 
         if (!response.ok) {
@@ -44,7 +52,14 @@ const Profile = () => {
     const getCompany = async (companyId) => {
       try {
         const response = await fetch(
-          `http://localhost:8000/backend/company/${companyId}`
+          `http://localhost:8000/backend/company/${companyId}`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
         );
 
         if (!response.ok) {

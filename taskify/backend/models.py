@@ -45,7 +45,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=255)
     created_at = models.DateTimeField(default=datetime.now)
     is_manager = models.BooleanField(default=False)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='users', default="60c412cc-3e18-4bed-8f3b-ef70469f1ee6")
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='users')
 
     objects = CustomUserManager()
 

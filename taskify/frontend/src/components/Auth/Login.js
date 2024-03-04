@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
 import logo from "../../../static/images/TaskifyLogo.png";
 import "./Login.css";
+import { getCookie } from "../../actions/auth/auth";
 
 const Login1 = () => {
   const [loginInfo, setLoginInfo] = useState({
@@ -23,25 +24,19 @@ const Login1 = () => {
   const handleLogin = async () => {
     try {
       const { username, password } = loginInfo;
+
       const response = await fetch(
         "http://localhost:8000/backend/auth/login/",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-Csrftoken": getCookie("csrftoken"),
           },
           body: JSON.stringify({ username, password }),
         }
       );
-      const data = await response.json();
       if (response.ok) {
-        await new Promise((resolve) => {
-          sessionStorage.setItem("session", data["session"]);
-          console.log("From Login: " + data["session"]);
-          while (sessionStorage.getItem("session") == null)
-            console.log("Logging In");
-          resolve();
-        });
         navigate("/tasklist");
       } else {
         setLoginInfo({

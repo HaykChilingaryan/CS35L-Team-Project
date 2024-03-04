@@ -3,17 +3,36 @@ import "./Sidebar.css";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Offcanvas } from "bootstrap";
+import { getCookie } from "../../actions/auth/auth";
 
 const Sidebar = () => {
   const [username, setUsername] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const location = useLocation();
 
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    sessionStorage.setItem("session", null);
-    setUsername("");
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/backend/auth/logout/",
+        {
+          method: "POST",
+          headers: {
+            "X-CsrfToken": getCookie("csrftoken"),
+          },
+        }
+      );
+
+      if (response.ok) {
+        setUsername("");
+        navigate("/");
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
   };
 
   const handleProfileNavigation = () => {
@@ -26,16 +45,23 @@ const Sidebar = () => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const sessionId = sessionStorage.getItem("session");
         const response = await fetch(
-          `http://localhost:8000/backend/auth/session/user?session_id=${sessionId}`
+          `http://localhost:8000/backend/users/me/`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Csrftoken": getCookie("csrftoken"),
+            },
+          }
         );
 
         if (!response.ok) {
           return null;
         }
-        const data = await response.json();
-        setUsername(data["username"]);
+        const user = await response.json();
+        setUsername(user.username);
+        console.log("Auth" + user.is_authenticated);
       } catch (error) {
         window.location.reload();
       }
@@ -71,7 +97,7 @@ const Sidebar = () => {
           </button>
         )}
         <div className="fs-4"> TASKIFY </div>
-        <div className="fs-4 pe-2">{username}</div>
+        <div className="fs-4 pe-2">Welcome {username}</div>
       </div>
 
       <div

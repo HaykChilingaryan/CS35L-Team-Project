@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.css";
 import "./TaskList.css";
+import { getCookie } from "../../actions/auth/auth";
 
 const TaskPage = () => {
   const [activeTab, setActiveTab] = useState("inProgress");
@@ -64,6 +65,7 @@ const TaskPage = () => {
         `http://localhost:8000/backend/users/${userId}`,
         {
           method: "GET",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
@@ -99,7 +101,6 @@ const TaskPage = () => {
 
   const handleSaveTask = async () => {
     try {
-      const authToken = sessionStorage.getItem("session");
       if (
         !newTask.title ||
         !newTask.description ||
@@ -114,9 +115,10 @@ const TaskPage = () => {
         "http://localhost:8000/backend/users/me/tasks/",
         {
           method: "POST",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
+            "X-Csrftoken": getCookie("csrftoken"),
           },
           body: JSON.stringify({
             title: newTask.title,
@@ -159,13 +161,15 @@ const TaskPage = () => {
     }));
   };
 
-  const handleDeleteTask = (taskId) => {
+  const handleTaskStatus = (taskId, newStatus) => {
+    console.log("Handle Task Status" + getCookie("csrfcookie"));
     fetch(`http://localhost:8000/backend/users/me/tasks/status/${taskId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken"),
       },
-      body: JSON.stringify({ status: "Deleted" }),
+      body: JSON.stringify({ status: newStatus }),
     })
       .then((response) => {
         if (!response.ok) {
@@ -178,34 +182,15 @@ const TaskPage = () => {
       });
   };
 
-  const handleCompleteTask = (taskId) => {
-    fetch(`http://localhost:8000/backend/users/me/tasks/status/${taskId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ status: "Completed" }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        window.location.reload();
-      })
-      .catch((error) => {
-        console.error("Error updating task status:", error.message);
-      });
-  };
-
-  const fetchCompanyTasks = async (userId, company, authToken) => {
+  const fetchCompanyTasks = async (userId, company) => {
     try {
       const response = await fetch(
         `http://localhost:8000/backend/company/${company}/tasks/`,
         {
           method: "GET",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
           },
         }
       );
@@ -238,17 +223,13 @@ const TaskPage = () => {
   };
 
   useEffect(() => {
-    const authToken = sessionStorage.getItem("session");
-    fetch(
-      `http://localhost:8000/backend/auth/session/user?session_id=${authToken}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-      }
-    )
+    fetch(`http://localhost:8000/backend/users/me/`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
       .then((response) => {
         if (!response.ok) {
           throw new Error("Network response was not ok");
@@ -257,7 +238,8 @@ const TaskPage = () => {
       })
       .then((user) => {
         setIsManager(user.is_manager);
-        fetchCompanyTasks(user.id, user.company, authToken);
+        console.log(user.is_authenticated);
+        fetchCompanyTasks(user.id, user.company);
         fetchCompanyUsers(user.company);
       })
       .catch((error) => {
@@ -267,7 +249,14 @@ const TaskPage = () => {
     const fetchCompanyUsers = async (id) => {
       try {
         const response = await fetch(
-          `http://localhost:8000/backend/company/${id}/users`
+          `http://localhost:8000/backend/company/${id}/users`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
         );
 
         if (!response.ok) {
@@ -413,7 +402,7 @@ const TaskPage = () => {
                 <div className="d-flex align-items-center">
                   <button
                     className="btn btn-danger btn-md me-2"
-                    onClick={() => handleDeleteTask(task.id)}
+                    onClick={() => handleTaskStatus(task.id, "Deleted")}
                   >
                     <i className="bi bi-trash"></i>
                   </button>
@@ -427,7 +416,7 @@ const TaskPage = () => {
                   </button>
                   <button
                     className="btn btn-success btn-md"
-                    onClick={() => handleCompleteTask(task.id)}
+                    onClick={() => handleTaskStatus(task.id, "Completed")}
                   >
                     <i className="bi bi-check"></i>
                   </button>
@@ -477,7 +466,7 @@ const TaskPage = () => {
                 <div className="d-flex align-items-center">
                   <button
                     className="btn btn-danger btn-md me-2"
-                    onClick={() => handleDeleteTask(task.id)}
+                    onClick={() => handleTaskStatus(task.id, "Deleted")}
                   >
                     <i className="bi bi-trash"></i>
                   </button>

@@ -12,7 +12,6 @@ import TaskPage from "./TaskList/TaskPage";
 import Profile from "./Profile/Profile";
 
 const App = () => {
-  const session = sessionStorage.getItem("session");
   return (
     <Router>
       {<Sidebar />}

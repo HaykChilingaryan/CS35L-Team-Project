@@ -4,18 +4,24 @@ from rest_framework import status, viewsets
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import User
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from .serializers import TaskSerializer, UserRegistrationSerializer, UserSerializer, CompanySerializer
-from rest_framework.decorators import permission_classes
+from rest_framework.decorators import permission_classes, authentication_classes
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie, csrf_protect
 from django.views.decorators.http import require_POST, require_GET
 from rest_framework.decorators import api_view
 from django.contrib.sessions.models import Session
 from .models import Task, Company
 from django.shortcuts import get_object_or_404
-
-
+from django.middleware.csrf import get_token
+from django.utils.decorators import method_decorator
 import json
+
+
+def get_csrf_token(request):
+    csrf_token = get_token(request)
+    return JsonResponse({'csrf_token': csrf_token})
         
 class CompanyListView(APIView):
     def get(self, request, format=None):
@@ -39,35 +45,16 @@ class UserListView(APIView):
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class UserLogoutView(APIView):
-    def post(self, request, *args, **kwargs):
-        logout(request)
-        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+@api_view(['POST'])
+@authentication_classes([SessionAuthentication])
+def logout_view(request):
+    logout(request)
+    return Response({"message": "Logout successful"})
     
-class TaskViewSet(viewsets.ModelViewSet):
-    serializer_class = TaskSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        # Filter tasks based on the requesting user
-        return Task.objects.filter(assigned_user=user)
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-    
-@permission_classes([IsAuthenticated])  
-class UserView(APIView):
-    def get(self, request):
-        user_profile = User.objects.get(user=request.user)
-        serializer = UserSerializer(user_profile)
-        return Response(serializer.data)
-    
-
-
-@csrf_exempt  # To allow POST requests from different domains (CSRF exemption for simplicity, handle CSRF properly in production)
+@api_view(['POST'])
 @require_POST
+@csrf_exempt
+@permission_classes([AllowAny])
 def user_login(request):
     data = json.loads(request.body.decode('utf-8'))
     username = data.get('username', '')
@@ -77,7 +64,9 @@ def user_login(request):
     if user is not None:
         login(request, user)
         session = request.session.session_key
-        return JsonResponse({'message': 'Login successful ', "username": user.username, "session": session})
+        serializer = UserSerializer(user)
+        user_info = serializer.data
+        return JsonResponse({'message': 'Login successful', 'user': user_info, 'session': session})
     else:
         return JsonResponse({'error': 'Invalid credentials'}, status=401)
     
@@ -90,27 +79,14 @@ def check_authentication(request):
         return JsonResponse({'message': 'Authenticated'}, status=status.HTTP_200_OK)
     else:
         return JsonResponse({'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
-    
-def get_user_with_session_id(session_id):
-    try:
-        session = Session.objects.get(session_key=session_id)
-        user_id = session.get_decoded().get('_auth_user_id')
-        user = User.objects.get(pk=user_id)
-        return user
-    except Session.DoesNotExist:
-        return None
-    except User.DoesNotExist:
-        return None
-    
+
 @api_view(['GET'])
-def get_user_from_session(request):
-    permission_classes=[IsAuthenticated]
+@permission_classes([IsAuthenticated])
+def get_user(request):
     try:
-        session_id = request.GET.get('session_id')
-        if not session_id:
-            return Response({'detail': 'Session ID is required'}, status=400)
-        
-        user = get_user_with_session_id(session_id)
+        user = request.user
+        if not user:
+            return Response({'detail': 'User not in request'}, status=400)
         
         if user:
             serializer = UserSerializer(user)
@@ -119,8 +95,10 @@ def get_user_from_session(request):
             return Response({'detail': 'User not found'}, status=404)
     except Exception as e:
         return Response({'detail': str(e)}, status=500)
+
     
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def create_task(request):
     if request.method == 'POST':
         serializer = TaskSerializer(data=request.data)
@@ -133,21 +111,18 @@ def create_task(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_user_tasks(request):
-    session_id = request.GET.get('sessionId')
-    if not session_id:
-        return Response({'detail': 'Session ID is required'}, status=400)
-    session = Session.objects.get(session_key=session_id)
-    user_id = session.get_decoded().get('_auth_user_id')
-    
-    if not user_id:
-        return Response({"detail": "userId parameter is required"}, status=status.HTTP_400_BAD_REQUEST)
+    user = request.user
+    if not user:
+        return Response({'detail': 'User not in session'}, status=400)
 
-    tasks = Task.objects.filter(assigned_user__id=user_id)
+    tasks = Task.objects.filter(assigned_user__id=user.id)
     serializer = TaskSerializer(tasks, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
 def update_task_status(request, task_id):
     if request.method == 'PATCH':
         task = get_object_or_404(Task, id=task_id)
@@ -166,6 +141,7 @@ def update_task_status(request, task_id):
         return JsonResponse({'error': 'Invalid request method'}, status=400)
     
 @api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
 def update_task(request, task_id):
     if request.method == 'PATCH':
         task = get_object_or_404(Task, id=task_id)
@@ -216,6 +192,7 @@ def create_company(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_users_by_company(request, company_id):
     try:
         company = Company.objects.get(id=company_id)
@@ -227,6 +204,7 @@ def get_users_by_company(request, company_id):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_company_by_id(request, company_id):
     try:
         company = Company.objects.get(id=company_id)
@@ -242,6 +220,8 @@ def get_all_tasks(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def get_tasks_for_company(request, company_id):
     company = get_object_or_404(Company, id=company_id)
     users_in_company = User.objects.filter(company=company)
@@ -249,9 +229,18 @@ def get_tasks_for_company(request, company_id):
     serializer = TaskSerializer(tasks, many=True)
     tasks_data = serializer.data
     return JsonResponse({"tasks": tasks_data})
-    
 
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
 def get_user_by_id(request, user_id):
     user = get_object_or_404(User, id=user_id)
     serializer = UserSerializer(user)
     return JsonResponse(serializer.data)
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
+class GetCSRFToken(APIView):
+    permission_classes = (AllowAny, )
+
+    def get(request, format=None):
+        return Response({ 'success': 'CSRF cookie set' })

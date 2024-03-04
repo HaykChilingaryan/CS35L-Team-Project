@@ -28,7 +28,7 @@ const Sidebar = () => {
       try {
         const sessionId = sessionStorage.getItem("session");
         const response = await fetch(
-          `http://localhost:8000/backend/api/get-user?session_id=${sessionId}`
+          `http://localhost:8000/backend/auth/session/user?session_id=${sessionId}`
         );
 
         if (!response.ok) {

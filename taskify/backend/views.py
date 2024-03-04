@@ -4,19 +4,24 @@ from rest_framework import status, viewsets
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import User
-from .serializers import TaskSerializer, UserRegistrationSerializer, UserSerializer
+from .serializers import TaskSerializer, UserRegistrationSerializer, UserSerializer, CompanySerializer
 from rest_framework.decorators import permission_classes
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 from rest_framework.decorators import api_view
 from django.contrib.sessions.models import Session
-from .models import Task
+from .models import Task, Company
 from django.shortcuts import get_object_or_404
 
 
 import json
         
+class CompanyListView(APIView):
+    def get(self, request, format=None):
+        companies = Company.objects.all()
+        serializer = CompanySerializer(companies, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class UserRegistrationView(APIView):
     serializer_class = UserRegistrationSerializer
@@ -51,7 +56,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
+    
 @permission_classes([IsAuthenticated])  
 class UserView(APIView):
     def get(self, request):
@@ -64,22 +69,16 @@ class UserView(APIView):
 @csrf_exempt  # To allow POST requests from different domains (CSRF exemption for simplicity, handle CSRF properly in production)
 @require_POST
 def user_login(request):
-    # Parse JSON data from the request
     data = json.loads(request.body.decode('utf-8'))
-
     username = data.get('username', '')
     password = data.get('password', '')
-
-    # Authenticate user
     user = authenticate(request, username=username, password=password)
 
     if user is not None:
-        # Login successful
         login(request, user)
-        session_id = request.session.session_key
-        return JsonResponse({'message': 'Login successful ', "username": user.username, "session": session_id})
+        session = request.session.session_key
+        return JsonResponse({'message': 'Login successful ', "username": user.username, "session": session})
     else:
-        # Login failed
         return JsonResponse({'error': 'Invalid credentials'}, status=401)
     
 @require_GET
@@ -94,15 +93,9 @@ def check_authentication(request):
     
 def get_user_with_session_id(session_id):
     try:
-        # Retrieve the session object from the database using the session ID
         session = Session.objects.get(session_key=session_id)
-
-        # Access the user ID associated with the session
         user_id = session.get_decoded().get('_auth_user_id')
-
-        # Retrieve the user object using the user ID
         user = User.objects.get(pk=user_id)
-
         return user
     except Session.DoesNotExist:
         return None
@@ -113,21 +106,15 @@ def get_user_with_session_id(session_id):
 def get_user_from_session(request):
     permission_classes=[IsAuthenticated]
     try:
-        # Retrieve the session ID from the request
         session_id = request.GET.get('session_id')
-
         if not session_id:
             return Response({'detail': 'Session ID is required'}, status=400)
-
-        # Retrieve the user from the session ID
+        
         user = get_user_with_session_id(session_id)
         
         if user:
-            # Serialize the user data as needed
-            username = user.username
-            firstName = user.first_name
-            lastName = user.last_name
-            return Response({'username': username,'first_name': firstName, 'last_name': lastName, "id": user.id})
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
         else:
             return Response({'detail': 'User not found'}, status=404)
     except Exception as e:
@@ -160,7 +147,7 @@ def get_user_tasks(request):
     serializer = TaskSerializer(tasks, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
-@csrf_exempt  # For simplicity. In a real application, use proper CSRF protection
+@api_view(['PATCH'])
 def update_task_status(request, task_id):
     if request.method == 'PATCH':
         task = get_object_or_404(Task, id=task_id)
@@ -175,6 +162,28 @@ def update_task_status(request, task_id):
             task.save()
             serializer = TaskSerializer(task)
             return JsonResponse(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+    
+@api_view(['PATCH'])
+def update_task(request, task_id):
+    if request.method == 'PATCH':
+        task = get_object_or_404(Task, id=task_id)
+        data = json.loads(request.body.decode('utf-8'))
+
+        # Extract 'status' from the JSON data
+        new_title = data.get('title')
+        new_desc = data.get('new_description')
+        new_user = data.get('assigned_user')
+        new_due_date = data.get('due_date')
+
+        task.title = new_title
+        task.description = new_desc
+        task.assigned_user = new_user
+        task.due_date = new_due_date
+        task.save()
+        serializer = TaskSerializer(task)
+        return JsonResponse(serializer.data, status=status.HTTP_200_OK)
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=400)
 
@@ -195,3 +204,54 @@ def delete_all_tasks(request):
         return Response({'message': 'All tasks deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@api_view(['POST'])
+def create_company(request):
+    if request.method == 'POST':
+        serializer = CompanySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+def get_users_by_company(request, company_id):
+    try:
+        company = Company.objects.get(id=company_id)
+    except Company.DoesNotExist:
+        return Response({"error": "Company not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    users = User.objects.filter(company=company)
+    serializer = UserSerializer(users, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_company_by_id(request, company_id):
+    try:
+        company = Company.objects.get(id=company_id)
+        serializer = CompanySerializer(company)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Company.DoesNotExist:
+        return Response({'detail': 'Company not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['GET'])
+def get_all_tasks(request):
+    tasks = Task.objects.all()
+    serializer = TaskSerializer(tasks, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_tasks_for_company(request, company_id):
+    company = get_object_or_404(Company, id=company_id)
+    users_in_company = User.objects.filter(company=company)
+    tasks = Task.objects.filter(assigned_user__in=users_in_company)
+    serializer = TaskSerializer(tasks, many=True)
+    tasks_data = serializer.data
+    return JsonResponse({"tasks": tasks_data})
+    
+
+def get_user_by_id(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    serializer = UserSerializer(user)
+    return JsonResponse(serializer.data)

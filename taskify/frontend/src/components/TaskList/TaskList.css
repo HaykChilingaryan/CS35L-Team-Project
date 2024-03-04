@@ -42,3 +42,37 @@ input[type="checkbox"]{
   padding: 10px; /* Adjust the padding as needed */
   margin-bottom: 10px; /* Adjust the margin as needed */
 }
+
+.popup{
+  height: 50%;
+  width: 75%;
+  background-color: rgb(240, 240, 240);
+  position: absolute;
+  top: 25%;
+  left: 13.5%;
+}
+
+.input-task{
+  border: 0.2rem solid black;
+  border-radius: 10px;
+  width: 50%;
+  height: 20%;
+  text-align: center;
+}
+
+.btn-ct{
+  flex: 1;
+}
+
+.form-task{
+  align-items: center;
+  flex: 20;
+}
+
+input[type="date" i]{
+  text-align: center;
+}
+
+.input-description{
+  font-size: 1.5rem;
+}

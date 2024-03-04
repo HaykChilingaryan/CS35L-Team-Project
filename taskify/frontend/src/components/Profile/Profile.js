@@ -7,6 +7,7 @@ const Profile = () => {
   const [username, setUsername] = useState(null);
   const [firstName, setFirstName] = useState(null);
   const [lastName, setLastName] = useState(null);
+  const [company, setCompany] = useState(null);
   const [password, setPassword] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const location = useLocation();
@@ -24,16 +25,33 @@ const Profile = () => {
       try {
         const sessionId = sessionStorage.getItem("session");
         const response = await fetch(
-          `http://localhost:8000/backend/api/get-user?session_id=${sessionId}`
+          `http://localhost:8000/backend/auth/session/user?session_id=${sessionId}`
         );
 
         if (!response.ok) {
           return null;
         }
-        const data = await response.json();
-        setUsername(data["username"]);
-        setFirstName(data["first_name"]);
-        setLastName(data["last_name"]);
+        const user = await response.json();
+        setUsername(user["username"]);
+        setFirstName(user["first_name"]);
+        setLastName(user["last_name"]);
+        getCompany(user["company"]);
+      } catch (error) {
+        window.location.reload();
+      }
+    };
+
+    const getCompany = async (companyId) => {
+      try {
+        const response = await fetch(
+          `http://localhost:8000/backend/company/${companyId}`
+        );
+
+        if (!response.ok) {
+          return null;
+        }
+        const company = await response.json();
+        setCompany(company["name"]);
       } catch (error) {
         window.location.reload();
       }
@@ -69,7 +87,7 @@ const Profile = () => {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Company"
+                  placeholder={company}
                   value=""
                   style={{ width: "235px" }}
                   disabled

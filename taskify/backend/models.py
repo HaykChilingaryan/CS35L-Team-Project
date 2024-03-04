@@ -9,6 +9,7 @@ class Task(models.Model):
     STATUS_CHOICES = [
         ('InProgress', 'In Progress'),
         ('Complete', 'Complete'),
+        ('Deleted', 'Deleted')
     ]
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255, default = "untitled")
@@ -32,6 +33,9 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
 
         return self.create_user(username, password, **extra_fields)
+class Company(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
 
 class User(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -41,11 +45,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=255)
     created_at = models.DateTimeField(default=datetime.now)
     is_manager = models.BooleanField(default=False)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='users', default="60c412cc-3e18-4bed-8f3b-ef70469f1ee6")
 
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'password']
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'password', 'company']
 
     # Specify a unique related_name for the groups field
     groups = models.ManyToManyField(Group, related_name='custom_user_groups')

@@ -23,22 +23,24 @@ const Login1 = () => {
   const handleLogin = async () => {
     try {
       const { username, password } = loginInfo;
-      const response = await fetch("http://localhost:8000/backend/api/login/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      const response = await fetch(
+        "http://localhost:8000/backend/auth/login/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, password }),
+        }
+      );
       const data = await response.json();
       if (response.ok) {
         await new Promise((resolve) => {
-          console.log(data);
           sessionStorage.setItem("session", data["session"]);
           console.log("From Login: " + data["session"]);
           while (sessionStorage.getItem("session") == null)
             console.log("Logging In");
-          resolve(); // Resolving the promise to signal completion
+          resolve();
         });
         navigate("/tasklist");
       } else {

@@ -96,8 +96,8 @@ const CalendarView = () => {
         className="card bg-white text-black"
         style={{
           background: "#fff",
-          width: "95vw",
-          height: "95vh",
+          width: "90vw",
+          height: "90vh",
           boxShadow: "0 15px 40px rgba(0, 0, 0, 0.12)",
           display: "flex",
           flexDirection: "column",

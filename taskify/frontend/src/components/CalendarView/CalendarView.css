@@ -9,7 +9,6 @@ ul, li{
 .body {
 	display: flex;
 	background: #808080;
-	min-height: 100vh;
 	padding: 0 10px;
 	align-items: center;
 	justify-content: center;

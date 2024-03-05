@@ -16,8 +16,6 @@ from .models import Task, Company
 from django.shortcuts import get_object_or_404
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.hashers import make_password
 import json
 
 
@@ -49,7 +47,6 @@ class UserListView(APIView):
 
 @api_view(['POST'])
 @authentication_classes([SessionAuthentication])
-@login_required
 def logout_view(request):
     logout(request)
     return Response({"message": "Logout successful"})
@@ -142,25 +139,6 @@ def update_task_status(request, task_id):
             return JsonResponse(serializer.data, status=status.HTTP_200_OK)
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=400)
-    
-@api_view(['PATCH'])
-@login_required
-def update_password(request):
-    user = request.user
-    new_password = json.loads(request.body.decode('utf-8')).get('newPassword')
-
-    if new_password:
-        # Validate the new password (you can add more validation if needed)
-        if len(new_password) < 8:
-            return JsonResponse({'error': 'New password must be at least 8 characters long'}, status=400)
-
-        # Update the user's password
-        user.set_password(new_password)
-        user.save()
-
-        return JsonResponse({'message': 'Password updated successfully'}, status=200)
-    else:
-        return JsonResponse({'error': 'New password not provided'}, status=400)
     
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])

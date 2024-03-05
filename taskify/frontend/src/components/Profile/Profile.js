@@ -1,5 +1,4 @@
 import React, { Component, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
 import "./Profile.css";
@@ -10,42 +9,16 @@ const Profile = () => {
   const [firstName, setFirstName] = useState(null);
   const [lastName, setLastName] = useState(null);
   const [company, setCompany] = useState(null);
-  const [newPassword, setNewPassword] = useState("");
+  const [password, setPassword] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [error, setError] = useState(null);
   const location = useLocation();
 
   const handleInputChange = (e) => {
-    const { value } = e.target;
-    setNewPassword(value);
-  };
-
-  const navigate = useNavigate();
-
-  const handlePasswordChange = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:8000/backend/users/me/pass",
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken"), // Include CSRF token if applicable
-          },
-          body: JSON.stringify({ newPassword }),
-        }
-      );
-
-      if (response.ok) {
-        setMessage("Password Successfully Changed");
-        navigate("/");
-      } else {
-        setError("Password change unsuccessful");
-      }
-    } catch (error) {
-      setError("An unexpected error occurred.");
-    }
+    const { name, value } = e.target;
+    setPassword((prevPassword) => ({
+      ...prevPassword,
+      [name]: value,
+    }));
   };
 
   useEffect(() => {
@@ -186,7 +159,6 @@ const Profile = () => {
                   className="btn btn-sm btn-outline-dark px-5"
                   type="button"
                   style={{ width: "200px" }}
-                  onClick={() => handlePasswordChange()}
                 >
                   Change Password
                 </button>

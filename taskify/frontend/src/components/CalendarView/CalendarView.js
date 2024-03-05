@@ -27,6 +27,13 @@ const CalendarView = () => {
       "December",
     ];
 
+    const dueDates = [
+      { year: 2024, month: 3, day: 5 },
+      { year: 2024, month: 3, day: 15 },
+      { year: 2024, month: 3, day: 29 },
+      { year: 2024, month: 4, day: 15 },
+    ];
+
     const manipulate = () => {
       let dayone = new Date(year, month, 1).getDay();
       let lastdate = new Date(year, month + 1, 0).getDate();
@@ -39,13 +46,22 @@ const CalendarView = () => {
       }
       // add current month dates
       for (let i = 1; i <= lastdate; i++) {
-        let isToday =
+        let isTodayorMonthDay =
           i === date.getDate() &&
           month === new Date().getMonth() &&
           year === new Date().getFullYear()
-            ? "active"
-            : "";
-        lit += `<li class="${isToday}" id="date-${i}">${i}</li>`;
+            ? "today"
+            : "monthDay";
+
+        let isDueDate = dueDates.some(
+          (dueDate) =>
+            dueDate.year === year &&
+            dueDate.month === month + 1 && // Months are zero-based in JavaScript Date objects
+            dueDate.day === i
+        )
+          ? "due-date"
+          : "";
+        lit += `<li class="${isDueDate} ${isTodayorMonthDay}" id="${year}/${month}/${i}">${i}</li>`;
       }
       // add first dates of the next month
       for (let i = dayend; i < 6; i++) {

@@ -135,19 +135,3 @@ header .calendar-current-date {
 .calendar-dates li:not(.active):hover::before {
 	background: whitesmoke;
 }
-
-.tooltip {
-    position: absolute;
-    background-color: #333;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 5px;
-    display: none; /* Hide tooltip by default */
-}
-
-/* Adjust tooltip position */
-.tooltip {
-    top: 100%; /* Position below the date */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Center horizontally */
-}

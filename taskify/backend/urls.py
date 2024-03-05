@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import  CompanyListView, UserRegistrationView, UserListView, GetCSRFToken, create_company, get_all_tasks, get_company_by_id, get_csrf_token, get_tasks_for_company, get_user_by_id, get_user_tasks, get_users_by_company, update_task
-from .views import user_login, check_authentication, create_task, update_task_status,delete_all_users,delete_all_tasks, logout_view, get_user
+from .views import user_login, check_authentication, create_task, update_task_status,delete_all_users,delete_all_tasks, logout_view, get_user, update_password
 
 
 urlpatterns = [
@@ -18,6 +18,7 @@ urlpatterns = [
     path('company/<uuid:company_id>/users/', get_users_by_company, name='get-users-by-company'),
     path('company/<uuid:company_id>/tasks/', get_tasks_for_company, name='get_tasks_for_company'),
     path('csrf-token/', GetCSRFToken.as_view()),
+    path('users/me/pass', update_password, name='update_password'),
 
     
     #Test purposes only

@@ -5,5 +5,6 @@ urlpatterns = [
     path('', index),
     path('profile', index),
     path('tasklist', index),
-    path('login', index)
+    path('login', index),
+    path('calendar', index)
 ]

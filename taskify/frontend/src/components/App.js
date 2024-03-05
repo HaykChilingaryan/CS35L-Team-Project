@@ -10,6 +10,7 @@ import Sidebar from "./Sidebar/Sidebar";
 import Login1 from "./Auth/Login";
 import TaskPage from "./TaskList/TaskPage";
 import Profile from "./Profile/Profile";
+import CalendarView from "./CalendarView/CalendarView";
 
 const App = () => {
   return (
@@ -19,6 +20,7 @@ const App = () => {
         <Route path="/" element={<Login1 />} />
         {<Route path="/tasklist" element={<TaskPage />} />}
         {<Route path="/profile" element={<Profile />} />}
+        {<Route path="/calendar" element={<CalendarView />} />}
       </Routes>
     </Router>
   );

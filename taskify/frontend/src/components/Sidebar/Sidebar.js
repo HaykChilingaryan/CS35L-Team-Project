@@ -43,6 +43,7 @@ const Sidebar = () => {
     navigate("/tasklist");
   };
   useEffect(() => {
+    setUsername("");
     const getUser = async () => {
       try {
         const response = await fetch(
@@ -61,8 +62,8 @@ const Sidebar = () => {
         }
         const user = await response.json();
         setUsername(user.username);
-        console.log("Auth" + user.is_authenticated);
       } catch (error) {
+        setUsername("");
         window.location.reload();
       }
     };
@@ -97,7 +98,7 @@ const Sidebar = () => {
           </button>
         )}
         <div className="fs-4"> TASKIFY </div>
-        <div className="fs-4 pe-2">Welcome {username}</div>
+        {username && <div className="fs-4 pe-2">Welcome {username}</div>}
       </div>
 
       <div

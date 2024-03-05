@@ -162,7 +162,6 @@ const TaskPage = () => {
   };
 
   const handleTaskStatus = (taskId, newStatus) => {
-    console.log("Handle Task Status" + getCookie("csrfcookie"));
     fetch(`http://localhost:8000/backend/users/me/tasks/status/${taskId}`, {
       method: "PATCH",
       headers: {

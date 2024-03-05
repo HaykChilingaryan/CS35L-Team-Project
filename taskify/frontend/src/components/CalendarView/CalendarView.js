@@ -1,8 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.css";
 import "./CalendarView.css";
 
 const CalendarView = () => {
+  const [selectedDate, setSelectedDate] = useState(null);
+
   useEffect(() => {
     const daysTag = document.querySelector(".calendar-dates");
     const currentDate = document.querySelector(".calendar-current-date");
@@ -40,11 +42,14 @@ const CalendarView = () => {
       let dayend = new Date(year, month, lastdate).getDay();
       let monthlastdate = new Date(year, month, 0).getDate();
       let lit = "";
-      // adds dates of last month
       for (let i = dayone; i > 0; i--) {
-        lit += `<li class="inactive">${monthlastdate - i + 1}</li>`;
+        const prevMonthDate = month === 0 ? 11 : month - 1;
+        const prevMonthYear = month === 0 ? year - 1 : year;
+        lit += `<li class="inactive" data-month="${prevMonthDate}" data-year="${prevMonthYear}">${
+          monthlastdate - i + 1
+        }</li>`;
       }
-      // add current month dates
+
       for (let i = 1; i <= lastdate; i++) {
         let isTodayorMonthDay =
           i === date.getDate() &&
@@ -61,12 +66,17 @@ const CalendarView = () => {
         )
           ? "due-date"
           : "";
-        lit += `<li class="${isDueDate} ${isTodayorMonthDay}" id="${year}/${month}/${i}">${i}</li>`;
+        lit += `<li class="${isDueDate} ${isTodayorMonthDay}" id="${year}/${month}/${i}" data-month="${month}" data-year="${year}">${i}</li>`;
       }
-      // add first dates of the next month
+
       for (let i = dayend; i < 6; i++) {
-        lit += `<li class="inactive">${i - dayend + 1}</li>`;
+        const nextMonthDate = month === 11 ? 0 : month + 1;
+        const nextMonthYear = month === 11 ? year + 1 : year;
+        lit += `<li class="inactive" data-month="${nextMonthDate}" data-year="${nextMonthYear}">${
+          i - dayend + 1
+        }</li>`;
       }
+
       currentDate.innerText = `${months[month]} ${year}`;
       daysTag.innerHTML = lit;
 
@@ -75,7 +85,9 @@ const CalendarView = () => {
       dateElements.forEach((dateElement) => {
         dateElement.addEventListener("click", () => {
           const date = dateElement.innerText;
-          alert(`Popup for date ${months[month]} ${date}`);
+          const clickedMonth = parseInt(dateElement.getAttribute("data-month"));
+          const clickedYear = parseInt(dateElement.getAttribute("data-year"));
+          setSelectedDate(`${months[clickedMonth]} ${date}, ${clickedYear}`);
         });
       });
     };
@@ -105,6 +117,10 @@ const CalendarView = () => {
       });
     });
   }, []);
+
+  const closeModal = () => {
+    setSelectedDate(null);
+  };
 
   return (
     <body>
@@ -155,6 +171,42 @@ const CalendarView = () => {
           <ul className="calendar-dates"></ul>
         </div>
       </div>
+      {selectedDate && (
+        <div
+          className="modal"
+          tabIndex="-1"
+          role="dialog"
+          style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">{selectedDate}</h5>
+              </div>
+              <div className="modal-body">
+                <div>
+                  <h6>Completed Tasks</h6>
+                  <p>placeholder task</p>
+                </div>
+                <hr />
+                <div>
+                  <h6>Ongoing Tasks</h6>
+                  <p>placeholder task</p>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={closeModal}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </body>
   );
 };

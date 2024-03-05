@@ -42,6 +42,10 @@ const Sidebar = () => {
   const handleTaskListNavigation = () => {
     navigate("/tasklist");
   };
+
+  const handleTaskCalendarNavigation = () => {
+    navigate("/calendar");
+  };
   useEffect(() => {
     const getUser = async () => {
       try {
@@ -133,7 +137,12 @@ const Sidebar = () => {
             </button>
           </ul>
           <ul>
-            <button type="button" className="menu-button fs-5 btn">
+            <button
+              onClick={handleTaskCalendarNavigation}
+              type="button"
+              className="menu-button fs-5 btn"
+              data-bs-dismiss="offcanvas"
+            >
               <i className="bi bi-calendar-check"></i> Calendar View
             </button>
           </ul>

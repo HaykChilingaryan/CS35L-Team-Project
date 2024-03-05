@@ -1,0 +1,154 @@
+* {
+	font-family: 'Rajdhani';
+}
+
+ul, li{
+	padding-left: 0;
+}
+
+.body {
+	display: flex;
+	background: #808080;
+	min-height: 100vh;
+	padding: 0 10px;
+	align-items: center;
+	justify-content: center;
+}
+
+.calendar-container {
+    background: #fff;
+    width: 95vw; /* Full width of the viewport */
+    height: 95vh; /* Full height of the viewport */
+    border-radius: 10px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column; /* Arrange header and body vertically */
+}
+
+.calendar-container header {
+	display: flex;
+	align-items: center;
+	padding: 25px 30px 10px;
+	justify-content: space-between;
+}
+
+header .calendar-navigation {
+	display: flex;
+}
+
+header .calendar-navigation span {
+	height: 38px;
+	width: 38px;
+	margin: 0 1px;
+	cursor: pointer;
+	text-align: center;
+	line-height: 38px;
+	border-radius: 50%;
+	user-select: none;
+	color: #aeabab;
+	font-size: 1.9rem;
+}
+
+.calendar-navigation span:last-child { /*moves the < > navigation to the left by 10px*/
+	margin-right: -10px;
+}
+
+header .calendar-navigation span:hover {
+	background: #f2f2f2;
+}
+
+header .calendar-current-date {
+	font-weight: 500;
+	font-size: 1.45rem;
+  border-bottom: 2px solid #87daf3;
+}
+
+.calendar-body {
+	padding: 30px;
+	height: 100%;
+	display: flex;
+	justify-content: space-evenly;
+	flex-direction: column;
+}
+
+.calendar-body ul {
+	list-style: none;
+	flex-wrap: wrap;
+	display: flex;
+}
+
+.calendar-body .calendar-dates {
+	margin-bottom: 20px;
+	display: flex;
+	justify-content: space-evenly;
+	flex: 9;
+	border: 0.1rem solid black;
+}
+
+.calendar-body li {
+	width: calc(100% / 7);
+	font-size: 1.07rem;
+	color: #414141;
+}
+
+.calendar-body .calendar-weekdays{
+	flex: 1;
+	text-align: center;
+}
+
+.calendar-body .calendar-weekdays li {
+	cursor: default;
+	font-weight: 500;
+	font-size: 2.5rem;
+}
+
+.calendar-body .calendar-dates li {
+	padding: 20px;
+	position: relative;
+	border: 0.1rem solid black;
+	z-index: 1;
+	cursor: pointer;
+}
+
+.calendar-dates li.inactive {
+	color: #aaa;
+}
+
+.calendar-dates li.active {
+	color: #fff;
+}
+
+.calendar-dates li::before {
+	position: absolute;
+	content: "";
+	z-index: -1;
+	top: 50%;
+	left: 50%;
+	height: 100%;
+	width: 100%;
+	transform: translate(-50%, -50%);
+}
+
+.calendar-dates li.active::before {
+	background: #87daf3;
+}
+
+.calendar-dates li:not(.active):hover::before {
+	background: whitesmoke;
+}
+
+.tooltip {
+    position: absolute;
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: none; /* Hide tooltip by default */
+}
+
+/* Adjust tooltip position */
+.tooltip {
+    top: 100%; /* Position below the date */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Center horizontally */
+}

@@ -13,6 +13,31 @@ ul, li{
 	align-items: center;
 	justify-content: center;
 }
+.monthDay:hover{
+	background-color: whitesmoke;
+}
+
+.due-date {
+	background-color:  rgb(188, 228, 114); /* Set the background color for due dates */
+	color: #fff; /* Set the text color for due dates */
+}
+.due-date:hover {
+	background-color: #a4e63b; /* Set the background color for due dates on hover */
+}
+
+.today{
+	background-color: rgb(124, 189, 219); /* Set the background color for due dates */
+	color: #fff;
+}
+
+.today:hover {
+	background-color: #53bdfa; /* Set the background color for due dates on hover */
+}
+
+.inactive{
+	background-color: rgba(204, 203, 203, 0.377);
+}
+
 
 .calendar-container {
     background: #fff;
@@ -102,19 +127,11 @@ header .calendar-current-date {
 }
 
 .calendar-body .calendar-dates li {
-	padding: 20px;
 	position: relative;
 	border: 0.1rem solid black;
 	z-index: 1;
 	cursor: pointer;
-}
-
-.calendar-dates li.inactive {
-	color: #aaa;
-}
-
-.calendar-dates li.active {
-	color: #fff;
+	font-size: 1.2rem;
 }
 
 .calendar-dates li::before {
@@ -128,10 +145,19 @@ header .calendar-current-date {
 	transform: translate(-50%, -50%);
 }
 
-.calendar-dates li.active::before {
-	background: #87daf3;
+
+.tooltip {
+    position: absolute;
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    display: none; /* Hide tooltip by default */
 }
 
-.calendar-dates li:not(.active):hover::before {
-	background: whitesmoke;
+/* Adjust tooltip position */
+.tooltip {
+    top: 100%; /* Position below the date */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Center horizontally */
 }

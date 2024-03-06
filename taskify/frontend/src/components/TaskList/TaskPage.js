@@ -2,20 +2,18 @@ import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.css";
 import "./TaskList.css";
 import { getCookie } from "../../actions/auth/auth";
+import { handleTaskStatus } from "../../actions/auth/taskUtils";
 
 const TaskPage = () => {
   const [activeTab, setActiveTab] = useState("inProgress");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterValue, setFilterValue] = useState("");
-  const [tasks, setTasks] = useState([]);
-  const [error, setError] = useState(null);
+  const [filterValue, setFilterValue] = useState("Title");
   const [inProgressTasks, setInProgressTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
-  const [userInProgressTasks, setUserInProgressTasks] = useState([]);
-  const [userCompletedTasks, setUserCompletedTasks] = useState([]);
   const [isManager, setIsManager] = useState(false);
   const [usersOfCompany, setUsersOfCompany] = useState(null);
   const [userDetailsMap, setUserDetailsMap] = useState(new Map());
+  const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -52,7 +50,6 @@ const TaskPage = () => {
           lastName: userDetails.lastName,
         });
       });
-      console.log(userDetailsMapCopy);
       setUserDetailsMap(userDetailsMapCopy);
     } catch (error) {
       console.error("Error fetching user details for tasks:", error.message);
@@ -68,6 +65,7 @@ const TaskPage = () => {
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            "X-Csrftoken": getCookie("csrftoken"),
           },
         }
       );
@@ -84,6 +82,7 @@ const TaskPage = () => {
   };
 
   const handleTabChange = (tab) => {
+    setSearchQuery("");
     setActiveTab(tab);
   };
 
@@ -99,7 +98,7 @@ const TaskPage = () => {
     setFilterValue("");
   };
 
-  const handleSaveTask = async () => {
+  const handleCreateTask = async () => {
     try {
       if (
         !newTask.title ||
@@ -139,9 +138,38 @@ const TaskPage = () => {
     }
   };
 
+  const handleUpdateTask = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:8000/backend/users/me/tasks/",
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Csrftoken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({
+            id: updatingTask.id,
+            title: updatingTask.title,
+            description: updatingTask.description,
+            assigned_user: updatingTask.assigned_user.id,
+            due_date: updatingTask.due_date,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      window.location.reload();
+    } catch (error) {
+      console.error("Error creating task:", error.message);
+    }
+  };
+
   const handleViewTask = async (task) => {
-    console.log(task);
-    console.log(fetchUserById(task.assigned_user));
     setUpdatingTask({
       id: task.id,
       title: task.title,
@@ -149,11 +177,9 @@ const TaskPage = () => {
       assigned_user: await fetchUserById(task.assigned_user),
       due_date: task.due_date.slice(0, -1),
     });
-
-    console.log(task.assigned_user);
   };
 
-  const handleInputChange = (e) => {
+  const handleNewTaskInputChange = (e) => {
     const { name, value } = e.target;
     setNewTask((prevTask) => ({
       ...prevTask,
@@ -161,35 +187,46 @@ const TaskPage = () => {
     }));
   };
 
-  const handleTaskStatus = (taskId, newStatus) => {
-    fetch(`http://localhost:8000/backend/users/me/tasks/status/${taskId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCookie("csrftoken"),
-      },
-      body: JSON.stringify({ status: newStatus }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        window.location.reload();
-      })
-      .catch((error) => {
-        console.error("Error updating task status:", error.message);
-      });
+  const handleUpdatingTaskInputChange = (e) => {
+    const { name, value } = e.target;
+    setUpdatingTask((prevTask) => ({
+      ...prevTask,
+      [name]: value,
+    }));
   };
 
-  const fetchCompanyTasks = async (userId, company) => {
+  const handleStatusChange = (taskId, status) => {
+    handleTaskStatus(taskId, status);
+  };
+
+  const fetchTasks = async () => {
     try {
+      let sortingField = "title";
+      switch (filterValue) {
+        case "Title":
+          sortingField = "title";
+          break;
+        case "Date":
+          sortingField = "due_date";
+          break;
+        case "User Name":
+          sortingField = "assigned_user__first_name";
+          break;
+        default:
+          sortingField = "title";
+          break;
+      }
+
+      const searchQueryParam = searchQuery ? `&search=${searchQuery}` : "";
+
       const response = await fetch(
-        `http://localhost:8000/backend/company/${company}/tasks/`,
+        `http://localhost:8000/backend/users/me/tasks?ordering=${sortingField}${searchQueryParam}`,
         {
           method: "GET",
           credentials: "include",
           headers: {
             "Content-Type": "application/json",
+            "X-Csrftoken": getCookie("csrftoken"),
           },
         }
       );
@@ -197,24 +234,14 @@ const TaskPage = () => {
         throw new Error("Network response was not ok");
       }
       const tasksData = await response.json();
-      setTasks(tasksData.tasks);
-      const inProgress = tasksData.tasks.filter(
-        (task) => task.status == "InProgress"
-      );
-      const userInProgress = inProgress.filter(
-        (task) => task.assigned_user == userId
+      setTasks(tasksData);
+      const inProgress = tasksData.filter(
+        (task) => task.status === "InProgress"
       );
       setInProgressTasks(inProgress);
-      setUserInProgressTasks(userInProgress);
-      const completed = tasksData.tasks.filter(
-        (task) => task.status == "Completed"
-      );
-      const userCompleted = completed.filter(
-        (task) => task.assigned_user == userId
-      );
+      const completed = tasksData.filter((task) => task.status === "Completed");
       setCompletedTasks(completed);
-      setUserCompletedTasks(userCompleted);
-      fetchUserDetailsForTasks(tasksData.tasks);
+      fetchUserDetailsForTasks(tasksData);
     } catch (error) {
       console.error("Error fetching tasks:", error.message);
       throw error;
@@ -227,6 +254,7 @@ const TaskPage = () => {
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        "X-Csrftoken": getCookie("csrftoken"),
       },
     })
       .then((response) => {
@@ -237,8 +265,7 @@ const TaskPage = () => {
       })
       .then((user) => {
         setIsManager(user.is_manager);
-        console.log(user.is_authenticated);
-        fetchCompanyTasks(user.id, user.company);
+        fetchTasks();
         fetchCompanyUsers(user.company);
       })
       .catch((error) => {
@@ -254,6 +281,7 @@ const TaskPage = () => {
             credentials: "include",
             headers: {
               "Content-Type": "application/json",
+              "X-Csrftoken": getCookie("csrftoken"),
             },
           }
         );
@@ -267,9 +295,9 @@ const TaskPage = () => {
         setError(error.message);
       }
     };
-  }, [location.pathname]);
+  }, [location.pathname, filterValue, searchQuery]);
 
-  const filterOptions = ["Option 1", "Option 2", "Option 3"]; // Replace with your actual filter options
+  const filterOptions = ["Title", "Date", "User Name"]; // Replace with your actual filter options
   return (
     <div className="container mt-5">
       <div className="d-flex justify-content-between align-items-center">
@@ -333,7 +361,7 @@ const TaskPage = () => {
             className="form-label"
             style={{ fontSize: "1.2rem" }}
           >
-            Filter
+            Sort
           </label>
           <select
             className="form-select"
@@ -341,7 +369,6 @@ const TaskPage = () => {
             value={filterValue}
             onChange={handleFilterChange}
           >
-            <option value="">No Filter</option>
             {filterOptions.map((option) => (
               <option key={option} value={option}>
                 {option}
@@ -358,17 +385,9 @@ const TaskPage = () => {
           id="inProgress"
         >
           {/* Content for In Progress tasks */}
-          {filterValue && (
-            <button
-              className="btn btn-outline-dark"
-              style={{ fontSize: "1.2rem" }}
-              onClick={removeFilter}
-            >
-              {filterValue}
-            </button>
-          )}
+
           <div className="row g-0">
-            {(isManager ? inProgressTasks : userInProgressTasks).map((task) => (
+            {inProgressTasks.map((task) => (
               <div
                 key={task.id}
                 className="col-md-8 d-flex column align-items-center task-container"
@@ -401,7 +420,7 @@ const TaskPage = () => {
                 <div className="d-flex align-items-center">
                   <button
                     className="btn btn-danger btn-md me-2"
-                    onClick={() => handleTaskStatus(task.id, "Deleted")}
+                    onClick={() => handleStatusChange(task.id, "Deleted")}
                   >
                     <i className="bi bi-trash"></i>
                   </button>
@@ -415,7 +434,7 @@ const TaskPage = () => {
                   </button>
                   <button
                     className="btn btn-success btn-md"
-                    onClick={() => handleTaskStatus(task.id, "Completed")}
+                    onClick={() => handleStatusChange(task.id, "Completed")}
                   >
                     <i className="bi bi-check"></i>
                   </button>
@@ -431,7 +450,7 @@ const TaskPage = () => {
           id="completed"
         >
           <div className="row g-0">
-            {(isManager ? completedTasks : userCompletedTasks).map((task) => (
+            {completedTasks.map((task) => (
               <div
                 key={task.id}
                 className="col-md-8 d-flex column align-items-center task-container"
@@ -465,7 +484,7 @@ const TaskPage = () => {
                 <div className="d-flex align-items-center">
                   <button
                     className="btn btn-danger btn-md me-2"
-                    onClick={() => handleTaskStatus(task.id, "Deleted")}
+                    onClick={() => handleStatusChange(task.id, "Deleted")}
                   >
                     <i className="bi bi-trash"></i>
                   </button>
@@ -509,7 +528,7 @@ const TaskPage = () => {
                     id="title"
                     name="title"
                     value={newTask.title}
-                    onChange={handleInputChange}
+                    onChange={handleNewTaskInputChange}
                   />
                 </div>
                 <div className="mb-3">
@@ -522,7 +541,7 @@ const TaskPage = () => {
                     name="description"
                     rows="3"
                     value={newTask.description}
-                    onChange={handleInputChange}
+                    onChange={handleNewTaskInputChange}
                   ></textarea>
                 </div>
                 <div className="mb-3">
@@ -535,7 +554,7 @@ const TaskPage = () => {
                     id="selectedUser"
                     name="selectedUser"
                     value={newTask.selectedUser}
-                    onChange={handleInputChange}
+                    onChange={handleNewTaskInputChange}
                   >
                     <option value="">Select User</option>
                     {usersOfCompany &&
@@ -556,7 +575,7 @@ const TaskPage = () => {
                     id="dueDate"
                     name="dueDate"
                     value={newTask.dueDate}
-                    onChange={handleInputChange}
+                    onChange={handleNewTaskInputChange}
                   />
                 </div>
               </form>
@@ -572,7 +591,7 @@ const TaskPage = () => {
               <button
                 type="button"
                 className="btn btn-outline-success"
-                onClick={handleSaveTask}
+                onClick={handleCreateTask}
                 data-bs-dismiss="modal"
               >
                 Create
@@ -603,7 +622,7 @@ const TaskPage = () => {
               ></button>
             </div>
             <div className="modal-body">
-              {/* Form for creating a new task */}
+              {/* Form for updating a new task */}
               <form>
                 <div className="mb-3">
                   <label htmlFor="title" className="form-label">
@@ -615,7 +634,7 @@ const TaskPage = () => {
                     id="title"
                     name="title"
                     value={updatingTask.title}
-                    onChange={handleInputChange}
+                    onChange={handleUpdatingTaskInputChange}
                   />
                 </div>
                 <div className="mb-3">
@@ -628,7 +647,7 @@ const TaskPage = () => {
                     name="description"
                     rows="3"
                     value={updatingTask.description}
-                    onChange={handleInputChange}
+                    onChange={handleUpdatingTaskInputChange}
                   ></textarea>
                 </div>
                 <div className="mb-3">
@@ -662,7 +681,7 @@ const TaskPage = () => {
                     id="dueDate"
                     name="dueDate"
                     value={updatingTask.due_date}
-                    onChange={handleInputChange}
+                    onChange={handleUpdatingTaskInputChange}
                   />
                 </div>
               </form>
@@ -678,7 +697,7 @@ const TaskPage = () => {
               <button
                 type="button"
                 className="btn btn-outline-success"
-                onClick={handleSaveTask}
+                onClick={handleUpdateTask}
                 data-bs-dismiss="modal"
               >
                 Update

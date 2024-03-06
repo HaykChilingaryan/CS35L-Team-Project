@@ -14,6 +14,7 @@ const TaskPage = () => {
   const [usersOfCompany, setUsersOfCompany] = useState(null);
   const [userDetailsMap, setUserDetailsMap] = useState(new Map());
   const [tasks, setTasks] = useState([]);
+  const [error, setError] = useState("");
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -153,8 +154,6 @@ const TaskPage = () => {
             id: updatingTask.id,
             title: updatingTask.title,
             description: updatingTask.description,
-            assigned_user: updatingTask.assigned_user.id,
-            due_date: updatingTask.due_date,
           }),
         }
       );
@@ -348,7 +347,7 @@ const TaskPage = () => {
               type="text"
               className="form-control"
               id="searchInput"
-              placeholder="Enter search query"
+              placeholder="Search by Title or Description"
               value={searchQuery}
               onChange={handleSearchChange}
               style={{ fontSize: "1.2rem" }}
@@ -654,22 +653,19 @@ const TaskPage = () => {
                   <label htmlFor="selectedUser" className="form-label">
                     Select User
                   </label>
-                  <select
-                    className="form-select"
-                    id="selectedUser"
-                    name="selectedUser"
-                  >
-                    <option>
-                      {updatingTask.assigned_user.first_name}{" "}
-                      {updatingTask.assigned_user.last_name}
-                    </option>
-                    {usersOfCompany &&
-                      usersOfCompany.map((user) => (
-                        <option key={user.id} value={user.id}>
-                          {user.first_name} {user.last_name}
-                        </option>
-                      ))}
-                  </select>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="name"
+                    name="name"
+                    autoComplete="name"
+                    placeholder={
+                      updatingTask.assigned_user.first_name +
+                      " " +
+                      updatingTask.assigned_user.last_name
+                    }
+                    disabled
+                  />
                 </div>
                 <div className="mb-3">
                   <label htmlFor="dueDate" className="form-label">
@@ -681,7 +677,7 @@ const TaskPage = () => {
                     id="dueDate"
                     name="dueDate"
                     value={updatingTask.due_date}
-                    onChange={handleUpdatingTaskInputChange}
+                    disabled
                   />
                 </div>
               </form>

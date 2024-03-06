@@ -159,7 +159,7 @@ def create_get_task(request):
         except Task.DoesNotExist:
             return Response("Task not found", status=status.HTTP_404_NOT_FOUND)
         if request.user.is_manager or request.user == task.assigned_user:
-            serializer = TaskSerializer(instance=task, data=request.data)
+            serializer = TaskSerializer(instance=task, data=request.data, partial=True)
 
             if serializer.is_valid():
                 serializer.save()

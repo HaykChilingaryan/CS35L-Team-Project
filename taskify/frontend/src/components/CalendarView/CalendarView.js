@@ -358,14 +358,10 @@ const CalendarView = () => {
                   >
                     <div className="card-body">
                       <h5 className="card-title">{task.title} </h5>
-                      <p className="card-text">{task.description}</p>
                       <p className="card-text">
                         <small>
                           Due:{" "}
                           {new Date(task.due_date).toLocaleString("en-US", {
-                            year: "numeric",
-                            month: "numeric",
-                            day: "numeric",
                             hour: "2-digit",
                             minute: "2-digit",
                             timeZone: "UTC",
@@ -423,7 +419,7 @@ const CalendarView = () => {
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title" id="taskDetailModalLabel">
-                View Task
+                View Task: Due - {selectedDate}
               </h5>
               <button
                 type="button"
@@ -470,19 +466,6 @@ const CalendarView = () => {
                     id="title"
                     name="title"
                     placeholder={updatingTask.assigned_user.first_name}
-                    disabled
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="dueDate" className="form-label">
-                    Due Date
-                  </label>
-                  <input
-                    type="datetime-local"
-                    className="form-control"
-                    id="dueDate"
-                    name="dueDate"
-                    placeholder={updatingTask.due_date}
                     disabled
                   />
                 </div>

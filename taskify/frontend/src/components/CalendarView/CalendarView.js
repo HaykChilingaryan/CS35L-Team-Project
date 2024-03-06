@@ -1,9 +1,60 @@
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.css";
 import "./CalendarView.css";
+import { getCookie } from "../../actions/auth/auth";
+import { handleTaskStatus } from "../../actions/auth/taskUtils";
 
 const CalendarView = () => {
   const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDateTasks, setSelectedDateTasks] = useState([]);
+  const [tasksMap, setTasksMap] = useState(new Map());
+  const [error, setError] = useState(null);
+
+  const [updatingTask, setUpdatingTask] = useState({
+    id: "",
+    title: "",
+    description: "",
+    assigned_user: "",
+    due_date: "",
+  });
+
+  const handleStatusChange = (taskId, status) => {
+    handleTaskStatus(taskId, status);
+  };
+  const fetchUserById = async (userId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/backend/users/${userId}`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Csrftoken": getCookie("csrftoken"),
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const userData = await response.json();
+      return userData; // This should contain the user's details
+    } catch (error) {
+      throw new Error(`Error fetching user by ID: ${error.message}`);
+    }
+  };
+
+  const handleViewTask = async (task) => {
+    setUpdatingTask({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      assigned_user: await fetchUserById(task.assigned_user),
+      due_date: task.due_date.slice(0, -1),
+    });
+  };
 
   useEffect(() => {
     const daysTag = document.querySelector(".calendar-dates");
@@ -29,14 +80,109 @@ const CalendarView = () => {
       "December",
     ];
 
-    const dueDates = [
-      { year: 2024, month: 3, day: 5 },
-      { year: 2024, month: 3, day: 15 },
-      { year: 2024, month: 3, day: 29 },
-      { year: 2024, month: 4, day: 15 },
-    ];
+    const fetchTasksAndDates = async () => {
+      fetch("http://localhost:8000/backend/users/me/tasks/", {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Csrftoken": getCookie("csrftoken"),
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          return response.json();
+        })
+        .then((tasks) => {
+          const inProgressTasks = tasks.filter(
+            (task) => task.status === "InProgress"
+          );
 
-    const manipulate = () => {
+          const extractedDueDates = inProgressTasks.map((task) => {
+            const dueDate = new Date(task.due_date);
+            return {
+              year: dueDate.getFullYear(),
+              month: dueDate.getMonth() + 1,
+              day: dueDate.getDate(),
+            };
+          });
+
+          const tasksByDate = new Map();
+
+          inProgressTasks.forEach((task) => {
+            const dueDate = new Date(task.due_date);
+            const year = dueDate.getFullYear();
+            const month = dueDate.getMonth() + 1;
+            const day = dueDate.getDate();
+
+            const yearMonthDateKey = `${year}-${month}-${day}`;
+
+            if (!tasksByDate.has(yearMonthDateKey)) {
+              tasksByDate.set(yearMonthDateKey, new Map());
+            }
+
+            tasksByDate.get(yearMonthDateKey).set(task.id, task);
+          });
+
+          setTasksMap(tasksByDate);
+          manipulate(extractedDueDates, tasksByDate);
+        })
+        .catch((error) => {
+          console.error("Error fetching tasks:", error);
+          setError("An unexpected error occurred");
+        });
+    };
+    fetchTasksAndDates();
+
+    fetch(`http://localhost:8000/backend/users/me/`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Csrftoken": getCookie("csrftoken"),
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((user) => {
+        setIsManager(user.is_manager);
+        fetchCompanyUsers(user.company);
+      })
+      .catch((error) => {
+        setError(error.message);
+      });
+
+    const fetchCompanyUsers = async (id) => {
+      try {
+        const response = await fetch(
+          `http://localhost:8000/backend/company/${id}/users`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Csrftoken": getCookie("csrftoken"),
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const companyUsers = await response.json();
+        setUsersOfCompany(companyUsers);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+
+    const manipulate = (dueDates, tasksByDate) => {
       let dayone = new Date(year, month, 1).getDay();
       let lastdate = new Date(year, month + 1, 0).getDate();
       let dayend = new Date(year, month, lastdate).getDay();
@@ -88,11 +234,19 @@ const CalendarView = () => {
           const clickedMonth = parseInt(dateElement.getAttribute("data-month"));
           const clickedYear = parseInt(dateElement.getAttribute("data-year"));
           setSelectedDate(`${months[clickedMonth]} ${date}, ${clickedYear}`);
+
+          const yearMonthDateKey = `${clickedYear}-${
+            clickedMonth + 1
+          }-${parseInt(date, 10)}`;
+          const tasksForSelectedDate = tasksByDate.get(yearMonthDateKey);
+
+          if (tasksForSelectedDate) {
+            openModal();
+            setSelectedDateTasks(Array.from(tasksForSelectedDate.values()));
+          }
         });
       });
     };
-
-    manipulate();
 
     // click event listener for each icon
     prevNextIcon.forEach((icon) => {
@@ -113,17 +267,20 @@ const CalendarView = () => {
           date = new Date();
         }
         // update calendar display
-        manipulate();
+        fetchTasksAndDates();
       });
     });
   }, []);
 
-  const closeModal = () => {
-    setSelectedDate(null);
+  const openModal = () => {
+    const modal = new bootstrap.Modal(
+      document.getElementById("createTaskModal")
+    );
+    modal.show();
   };
 
   return (
-    <body>
+    <div>
       <div
         className="card bg-white text-black"
         style={{
@@ -171,43 +328,179 @@ const CalendarView = () => {
           <ul className="calendar-dates"></ul>
         </div>
       </div>
-      {selectedDate && (
-        <div
-          className="modal"
-          tabIndex="-1"
-          role="dialog"
-          style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-        >
-          <div className="modal-dialog" role="document">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">{selectedDate}</h5>
+      {/* MODAL FOR TASK VIEW */}
+      <div
+        className="modal fade"
+        id="createTaskModal"
+        tabIndex="-1"
+        aria-labelledby="createTaskModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="createTaskModalLabel">
+                {selectedDate}
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <div className="row g-0">
+                {selectedDateTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="col-md-8 d-flex column align-items-center task-container"
+                  >
+                    <div className="card-body">
+                      <h5 className="card-title">{task.title} </h5>
+                      <p className="card-text">{task.description}</p>
+                      <p className="card-text">
+                        <small>
+                          Due:{" "}
+                          {new Date(task.due_date).toLocaleString("en-US", {
+                            year: "numeric",
+                            month: "numeric",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            timeZone: "UTC",
+                          })}
+                        </small>
+                      </p>
+                    </div>
+                    <div className="d-flex align-items-center">
+                      <button
+                        className="btn btn-danger btn-md me-2"
+                        onClick={() => handleStatusChange(task.id, "Deleted")}
+                      >
+                        <i className="bi bi-trash"></i>
+                      </button>
+                      <button
+                        className="btn btn-primary btn-md me-2"
+                        data-bs-toggle="modal"
+                        data-bs-target="#taskDetailModal"
+                        onClick={() => handleViewTask(task)}
+                      >
+                        <i className="bi bi-eye"></i>
+                      </button>
+                      <button
+                        className="btn btn-success btn-md"
+                        onClick={() => handleStatusChange(task.id, "Completed")}
+                      >
+                        <i className="bi bi-check"></i>
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="modal-body">
-                <div>
-                  <h6>Completed Tasks</h6>
-                  <p>placeholder task</p>
-                </div>
-                <hr />
-                <div>
-                  <h6>Ongoing Tasks</h6>
-                  <p>placeholder task</p>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={closeModal}
-                >
-                  Close
-                </button>
-              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-outline-danger"
+                data-bs-dismiss="taskDetailModal"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
-      )}
-    </body>
+      </div>
+
+      <div
+        className="modal fade"
+        id="taskDetailModal"
+        tabIndex="-1"
+        aria-labelledby="taskDetailModalLabel"
+        aria-hidden="true"
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="taskDetailModalLabel">
+                View Task
+              </h5>
+              <button
+                type="button"
+                className="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              <form>
+                <div className="mb-3">
+                  <label htmlFor="title" className="form-label">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="title"
+                    name="title"
+                    placeholder={updatingTask.title}
+                    disabled
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="description" className="form-label">
+                    Description
+                  </label>
+                  <textarea
+                    className="form-control"
+                    id="description"
+                    name="description"
+                    rows="3"
+                    placeholder={updatingTask.description}
+                    disabled
+                  ></textarea>
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="selectedUser" className="form-label">
+                    User
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="title"
+                    name="title"
+                    placeholder={updatingTask.assigned_user.first_name}
+                    disabled
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="dueDate" className="form-label">
+                    Due Date
+                  </label>
+                  <input
+                    type="datetime-local"
+                    className="form-control"
+                    id="dueDate"
+                    name="dueDate"
+                    placeholder={updatingTask.due_date}
+                    disabled
+                  />
+                </div>
+              </form>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-outline-danger"
+                data-bs-dismiss="modal"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

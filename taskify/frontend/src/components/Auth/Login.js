@@ -101,7 +101,7 @@ const Login1 = () => {
                 >
                   Login
                 </button>
-                {loginInfo.message && (
+                {loginInfo.message != "" && (
                   <div className={`mt-3 text-light ${jiggleEffect}`}>
                     {loginInfo.message}
                   </div>

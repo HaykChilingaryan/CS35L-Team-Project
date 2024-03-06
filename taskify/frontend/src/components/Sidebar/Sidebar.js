@@ -12,6 +12,18 @@ const Sidebar = () => {
 
   const navigate = useNavigate();
 
+  const handleProfileNavigation = () => {
+    navigate("/profile");
+  };
+
+  const handleTaskListNavigation = () => {
+    navigate("/tasklist");
+  };
+
+  const handleTaskCalendarNavigation = () => {
+    navigate("/calendar");
+  };
+
   const handleLogout = async () => {
     try {
       const response = await fetch(
@@ -35,17 +47,6 @@ const Sidebar = () => {
     }
   };
 
-  const handleProfileNavigation = () => {
-    navigate("/profile");
-  };
-
-  const handleTaskListNavigation = () => {
-    navigate("/tasklist");
-  };
-
-  const handleTaskCalendarNavigation = () => {
-    navigate("/calendar");
-  };
   useEffect(() => {
     setUsername("");
     const getUser = async () => {

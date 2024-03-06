@@ -19,6 +19,9 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 import json
+from django.db.models.functions import Lower
+from django.db.models import Q
+
 
 
 def get_csrf_token(request):
@@ -99,30 +102,73 @@ def get_user(request):
     except Exception as e:
         return Response({'detail': str(e)}, status=500)
 
-    
-@api_view(['POST'])
+@api_view(['GET', 'POST', 'PATCH'])
 @permission_classes([IsAuthenticated])
-def create_task(request):
+def create_get_task(request):
     if request.method == 'POST':
-        serializer = TaskSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            created_task_id = serializer.data['id']
-            created_task = Task.objects.get(id=created_task_id)
-            response = TaskSerializer(created_task)
-            return Response(response.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_user_tasks(request):
-    user = request.user
-    if not user:
-        return Response({'detail': 'User not in session'}, status=400)
+        if request.user.is_manager:
+            serializer = TaskSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                created_task_id = serializer.data['id']
+                created_task = Task.objects.get(id=created_task_id)
+                response = TaskSerializer(created_task)
+                return Response(response.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response("Non Manager User cannot create tasks")
+    elif request.method == 'GET':
+        user = request.user
+        if not user:
+            return Response({'detail': 'User not in session'}, status=400)
 
-    tasks = Task.objects.filter(assigned_user__id=user.id)
-    serializer = TaskSerializer(tasks, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+        ordering_param = request.query_params.get('ordering', 'title')  # Default to ordering by title
+        ordering_field = ordering_param.lower()  # Convert to lowercase for case-insensitive ordering
+        search_query = request.query_params.get('search', '')
+
+        try:
+            if user.is_manager:
+                users_in_company = User.objects.filter(company=user.company)
+
+                if search_query:
+                    tasks = Task.objects.filter(
+                        Q(title__icontains=search_query) | Q(description__icontains=search_query),
+                        assigned_user__in=users_in_company
+                    ).order_by(Lower(ordering_field))
+                else:
+                    tasks = Task.objects.filter(assigned_user__in=users_in_company).order_by(Lower(ordering_field))
+            else:
+                if search_query:
+                    tasks = Task.objects.filter(
+                        Q(title__icontains=search_query) | Q(description__icontains=search_query),
+                        assigned_user__id=user.id
+                    ).order_by(Lower(ordering_field))
+                else:
+                    tasks = Task.objects.filter(assigned_user__id=user.id).order_by(Lower(ordering_field))
+
+            serializer = TaskSerializer(tasks, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)  
+    elif request.method == 'PATCH':
+        task_id = request.data.get('id')
+        if not task_id:
+            return Response("Task ID is required for PATCH request", status=status.HTTP_400_BAD_REQUEST)
+        try:
+            task = Task.objects.get(id=task_id)
+        except Task.DoesNotExist:
+            return Response("Task not found", status=status.HTTP_404_NOT_FOUND)
+        if request.user.is_manager or request.user == task.assigned_user:
+            serializer = TaskSerializer(instance=task, data=request.data)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response("Permission denied: You cannot update this task", status=status.HTTP_403_FORBIDDEN)
+    return Response("Unable To Perform")
+   
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])

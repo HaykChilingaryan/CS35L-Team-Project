@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -15,7 +15,7 @@ import CalendarView from "./CalendarView/CalendarView";
 const App = () => {
   return (
     <Router>
-      {<Sidebar />}
+      <Sidebar />
       <Routes>
         <Route path="/" element={<Login1 />} />
         {<Route path="/tasklist" element={<TaskPage />} />}

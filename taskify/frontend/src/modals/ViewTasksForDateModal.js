@@ -77,7 +77,7 @@ const ViewTasksForDateModal = ({
             <button
               type="button"
               className="btn btn-outline-danger"
-              data-bs-dismiss="taskDetailModal"
+              data-bs-dismiss="modal"
             >
               Close
             </button>

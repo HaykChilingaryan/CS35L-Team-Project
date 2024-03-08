@@ -3,16 +3,18 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
 import logo from "../../../static/images/TaskifyLogo.png";
 import "./Login.css";
-import { getCookie } from "../../actions/auth/auth";
+import { login } from "../../actions/auth/auth";
 
 const Login1 = () => {
+  const navigate = useNavigate();
+  const [error, setError] = useState(null);
+  const [jiggle, setJiggle] = useState(false);
   const [loginInfo, setLoginInfo] = useState({
     username: "",
     password: "",
     message: "",
   });
 
-  const navigate = useNavigate();
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setLoginInfo((prevLoginInfo) => ({
@@ -23,34 +25,25 @@ const Login1 = () => {
 
   const handleLogin = async () => {
     try {
+      setJiggle(false);
       const { username, password } = loginInfo;
-
-      const response = await fetch(
-        "http://localhost:8000/backend/auth/login/",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Csrftoken": getCookie("csrftoken"),
-          },
-          body: JSON.stringify({ username, password }),
-        }
-      );
+      const response = await login(username, password);
       if (response.ok) {
         navigate("/tasklist");
       } else {
         setLoginInfo({
           username: "",
           password: "",
-          message: "Invalid username or password",
         });
+        setJiggle(true);
+        setError("Invalid Username or Password");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      setError(error.message);
     }
   };
 
-  const jiggleEffect = loginInfo.message ? "jiggle" : "";
+  const jiggleEffect = jiggle ? "jiggle" : "";
   return (
     <div className="container py-5 h-100">
       <div className="row d-flex justify-content-center align-items-center h-100">
@@ -101,9 +94,9 @@ const Login1 = () => {
                 >
                   Login
                 </button>
-                {loginInfo.message != "" && (
+                {jiggle && (
                   <div className={`mt-3 text-light ${jiggleEffect}`}>
-                    {loginInfo.message}
+                    {error}
                   </div>
                 )}
               </div>

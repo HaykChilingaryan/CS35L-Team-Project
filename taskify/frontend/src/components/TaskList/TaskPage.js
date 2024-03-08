@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.css";
-import "./TaskList.css";
+import "./TaskPage.css";
 import { getCookie } from "../../actions/auth/auth";
-import { handleTaskStatus } from "../../actions/auth/taskUtils";
+import { handleTaskStatus, getTasks } from "../../actions/auth/taskUtils";
+import ErrorModal from "../ErrorModal";
+import SuccessModal from "../SuccessModal";
 
 const TaskPage = () => {
+  const filterOptions = ["Title", "Date", "User Name"];
   const [activeTab, setActiveTab] = useState("inProgress");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterValue, setFilterValue] = useState("Title");
@@ -14,7 +17,8 @@ const TaskPage = () => {
   const [usersOfCompany, setUsersOfCompany] = useState(null);
   const [userDetailsMap, setUserDetailsMap] = useState(new Map());
   const [tasks, setTasks] = useState([]);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [newTask, setNewTask] = useState({
     title: "",
     description: "",
@@ -29,6 +33,12 @@ const TaskPage = () => {
     assigned_user: "",
     due_date: "",
   });
+  const handleCloseErrorModal = () => {
+    setError(null);
+  };
+  const handleCloseSuccessModal = () => {
+    setSuccess(null);
+  };
 
   const fetchUserDetailsForTasks = async (taskList) => {
     try {
@@ -53,7 +63,7 @@ const TaskPage = () => {
       });
       setUserDetailsMap(userDetailsMapCopy);
     } catch (error) {
-      console.error("Error fetching user details for tasks:", error.message);
+      setError(error.message);
     }
   };
 
@@ -72,13 +82,13 @@ const TaskPage = () => {
       );
 
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        setError(response.message);
       }
 
       const userData = await response.json();
-      return userData; // This should contain the user's details
+      return userData;
     } catch (error) {
-      throw new Error(`Error fetching user by ID: ${error.message}`);
+      setError(error.message);
     }
   };
 
@@ -95,10 +105,6 @@ const TaskPage = () => {
     setFilterValue(e.target.value);
   };
 
-  const removeFilter = (e) => {
-    setFilterValue("");
-  };
-
   const handleCreateTask = async () => {
     try {
       if (
@@ -107,7 +113,7 @@ const TaskPage = () => {
         !newTask.selectedUser ||
         !newTask.dueDate
       ) {
-        console.error("Please fill in all required fields");
+        setError("Please fill in all required fields");
         return;
       }
 
@@ -128,14 +134,15 @@ const TaskPage = () => {
           }),
         }
       );
-
+      const responseData = await response.json();
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        setError(responseData.message);
+      } else {
+        window.location.reload();
+        setSuccess(responseData.message);
       }
-
-      window.location.reload();
     } catch (error) {
-      console.error("Error creating task:", error.message);
+      setError(error.message);
     }
   };
 
@@ -159,12 +166,12 @@ const TaskPage = () => {
       );
 
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        setError(response.message);
       }
 
       window.location.reload();
     } catch (error) {
-      console.error("Error creating task:", error.message);
+      setError(error.message);
     }
   };
 
@@ -195,56 +202,45 @@ const TaskPage = () => {
   };
 
   const handleStatusChange = (taskId, status) => {
-    handleTaskStatus(taskId, status);
+    handleTaskStatus(taskId, status)
+      .then((response) => {
+        if (!response.ok) {
+          setError("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        fetchTasks();
+        setSuccess("Task Status Updated: " + status);
+      })
+      .catch((error) => {
+        console.error("Error updating task status:", error.message);
+      });
   };
 
   const fetchTasks = async () => {
-    try {
-      let sortingField = "title";
-      switch (filterValue) {
-        case "Title":
-          sortingField = "title";
-          break;
-        case "Date":
-          sortingField = "due_date";
-          break;
-        case "User Name":
-          sortingField = "assigned_user__first_name";
-          break;
-        default:
-          sortingField = "title";
-          break;
-      }
-
-      const searchQueryParam = searchQuery ? `&search=${searchQuery}` : "";
-
-      const response = await fetch(
-        `http://localhost:8000/backend/users/me/tasks?ordering=${sortingField}${searchQueryParam}`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Csrftoken": getCookie("csrftoken"),
-          },
+    getTasks(filterValue, searchQuery)
+      .then((response) => {
+        if (!response.ok) {
+          setError(response.message);
         }
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const tasksData = await response.json();
-      setTasks(tasksData);
-      const inProgress = tasksData.filter(
-        (task) => task.status === "InProgress"
-      );
-      setInProgressTasks(inProgress);
-      const completed = tasksData.filter((task) => task.status === "Completed");
-      setCompletedTasks(completed);
-      fetchUserDetailsForTasks(tasksData);
-    } catch (error) {
-      console.error("Error fetching tasks:", error.message);
-      throw error;
-    }
+        return response.json();
+      })
+      .then((tasksData) => {
+        const inProgress = tasksData.filter(
+          (task) => task.status === "InProgress"
+        );
+        const completed = tasksData.filter(
+          (task) => task.status === "Completed"
+        );
+        setTasks(tasksData);
+        setInProgressTasks(inProgress);
+        setCompletedTasks(completed);
+        fetchUserDetailsForTasks(tasksData);
+      })
+      .catch((error) => {
+        setError(error.message);
+      });
   };
 
   useEffect(() => {
@@ -258,7 +254,7 @@ const TaskPage = () => {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          setError(response.message);
         }
         return response.json();
       })
@@ -286,7 +282,7 @@ const TaskPage = () => {
         );
 
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          setError(response.message);
         }
         const companyUsers = await response.json();
         setUsersOfCompany(companyUsers);
@@ -296,9 +292,18 @@ const TaskPage = () => {
     };
   }, [location.pathname, filterValue, searchQuery]);
 
-  const filterOptions = ["Title", "Date", "User Name"]; // Replace with your actual filter options
   return (
     <div className="container mt-5">
+      {error && (
+        <ErrorModal errorMessage={error} onClose={handleCloseErrorModal} />
+      )}
+      {success && (
+        <SuccessModal
+          errorMessage={success}
+          onClose={handleCloseSuccessModal}
+        />
+      )}
+
       <div className="d-flex justify-content-between align-items-center">
         <h1>Task List</h1>
         {isManager && (

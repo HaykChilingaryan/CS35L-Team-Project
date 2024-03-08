@@ -8,7 +8,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from .serializers import TaskSerializer, UserRegistrationSerializer, UserSerializer, CompanySerializer
 from rest_framework.decorators import permission_classes, authentication_classes
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie, csrf_protect
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_POST, require_GET
 from rest_framework.decorators import api_view
 from django.contrib.sessions.models import Session
@@ -17,7 +17,6 @@ from django.shortcuts import get_object_or_404
 from django.middleware.csrf import get_token
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.hashers import make_password
 import json
 from django.db.models.functions import Lower
 from django.db.models import Q
@@ -54,27 +53,37 @@ class UserListView(APIView):
 @authentication_classes([SessionAuthentication])
 @login_required
 def logout_view(request):
-    logout(request)
-    return Response({"message": "Logout successful"})
+    try:
+        logout(request)
+        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 @api_view(['POST'])
 @require_POST
 @csrf_exempt
 @permission_classes([AllowAny])
 def user_login(request):
-    data = json.loads(request.body.decode('utf-8'))
-    username = data.get('username', '')
-    password = data.get('password', '')
-    user = authenticate(request, username=username, password=password)
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        username = data.get('username', '')
+        password = data.get('password', '')
+        
+        if not username or not password:
+            return Response({'message': 'Both username and password are required'}, status=400)
 
-    if user is not None:
-        login(request, user)
-        session = request.session.session_key
-        serializer = UserSerializer(user)
-        user_info = serializer.data
-        return JsonResponse({'message': 'Login successful', 'user': user_info, 'session': session})
-    else:
-        return JsonResponse({'error': 'Invalid credentials'}, status=401)
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            session = request.session.session_key
+            serializer = UserSerializer(user)
+            user_info = serializer.data
+            return Response({'message': 'Login successful', 'user': user_info, 'session': session})
+        else:
+            return Response({'message': 'Invalid credentials'}, status=401)
+    except Exception as e:
+        return Response({'message': str(e)}, status=500)
     
 @require_GET
 def check_authentication(request):
@@ -84,7 +93,7 @@ def check_authentication(request):
     if request.user.is_authenticated:
         return JsonResponse({'message': 'Authenticated'}, status=status.HTTP_200_OK)
     else:
-        return JsonResponse({'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+        return JsonResponse({'message': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -92,41 +101,40 @@ def get_user(request):
     try:
         user = request.user
         if not user:
-            return Response({'detail': 'User not in request'}, status=400)
+            return Response({'message': 'User not authenticated'}, status=401)
         
-        if user:
-            serializer = UserSerializer(user)
-            return Response(serializer.data)
-        else:
-            return Response({'detail': 'User not found'}, status=404)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
     except Exception as e:
-        return Response({'detail': str(e)}, status=500)
+        return Response({'message': str(e)}, status=500)
 
 @api_view(['GET', 'POST', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def create_get_task(request):
-    if request.method == 'POST':
-        if request.user.is_manager:
-            serializer = TaskSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                created_task_id = serializer.data['id']
-                created_task = Task.objects.get(id=created_task_id)
-                response = TaskSerializer(created_task)
-                return Response(response.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response("Non Manager User cannot create tasks")
-    elif request.method == 'GET':
+    try:
         user = request.user
         if not user:
-            return Response({'detail': 'User not in session'}, status=400)
+            return Response({'message': 'User not in session'}, status=status.HTTP_400_BAD_REQUEST)
 
-        ordering_param = request.query_params.get('ordering', 'title')  # Default to ordering by title
-        ordering_field = ordering_param.lower()  # Convert to lowercase for case-insensitive ordering
-        search_query = request.query_params.get('search', '')
+        if request.method == 'POST':
+            if user.is_manager:
+                serializer = TaskSerializer(data=request.data)
+                if serializer.is_valid():
+                    serializer.save()
+                    created_task_id = serializer.data['id']
+                    created_task = Task.objects.get(id=created_task_id)
+                    response = TaskSerializer(created_task)
+                    return Response({'message': "Task Successfully Created", 'task': response.data}, status=status.HTTP_201_CREATED)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response("Not Authorized to create Task", status=status.HTTP_403_FORBIDDEN)
 
-        try:
+        elif request.method == 'GET':
+
+            ordering_param = request.query_params.get('ordering', 'title')
+            ordering_field = ordering_param.lower()
+            search_query = request.query_params.get('search', '')
+
             if user.is_manager:
                 users_in_company = User.objects.filter(company=user.company)
 
@@ -148,26 +156,30 @@ def create_get_task(request):
 
             serializer = TaskSerializer(tasks, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)  
-    elif request.method == 'PATCH':
-        task_id = request.data.get('id')
-        if not task_id:
-            return Response("Task ID is required for PATCH request", status=status.HTTP_400_BAD_REQUEST)
-        try:
-            task = Task.objects.get(id=task_id)
-        except Task.DoesNotExist:
-            return Response("Task not found", status=status.HTTP_404_NOT_FOUND)
-        if request.user.is_manager or request.user == task.assigned_user:
-            serializer = TaskSerializer(instance=task, data=request.data, partial=True)
 
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response("Permission denied: You cannot update this task", status=status.HTTP_403_FORBIDDEN)
-    return Response("Unable To Perform")
+        elif request.method == 'PATCH':
+            task_id = request.data.get('id')
+            if not task_id:
+                return Response({'message': "Task ID is required for PATCH request"}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                task = Task.objects.get(id=task_id)
+            except Task.DoesNotExist:
+                return Response({'message': "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            if user.is_manager or user == task.assigned_user:
+                serializer = TaskSerializer(instance=task, data=request.data, partial=True)
+
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({'message': "Permission denied: You cannot update this task"}, status=status.HTTP_403_FORBIDDEN)
+
+    except Exception as e:
+        return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    return Response({'message': "Unable to perform the requested operation"}, status=status.HTTP_400_BAD_REQUEST)
    
 
 @api_view(['PATCH'])
@@ -177,17 +189,17 @@ def update_task_status(request, task_id):
         task = get_object_or_404(Task, id=task_id)
         data = json.loads(request.body.decode('utf-8'))
 
-        # Extract 'status' from the JSON data
         new_status = data.get('status')
 
-        # Check if new_status is provided and not None
         if new_status is not None:
             task.status = new_status
             task.save()
             serializer = TaskSerializer(task)
-            return JsonResponse(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'Invalid or missing "status" field in the request data'}, status=status.HTTP_400_BAD_REQUEST)
     else:
-        return JsonResponse({'error': 'Invalid request method'}, status=400)
+        return Response({'message': 'Invalid request method'}, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['PATCH'])
 @login_required
@@ -197,16 +209,18 @@ def update_password(request):
 
     if new_password:
         # Validate the new password (you can add more validation if needed)
+        if user.check_password(new_password):
+            return Response({'message': 'New password must be different from the current password'}, status=status.HTTP_400_BAD_REQUEST)
         if len(new_password) < 8:
-            return JsonResponse({'error': 'New password must be at least 8 characters long'}, status=400)
+            return Response({'message': 'New password must be at least 8 characters long'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Update the user's password
         user.set_password(new_password)
         user.save()
 
-        return JsonResponse({'message': 'Password updated successfully'}, status=200)
+        return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
     else:
-        return JsonResponse({'error': 'New password not provided'}, status=400)
+        return Response({'message': 'New password not provided'}, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
@@ -227,9 +241,9 @@ def update_task(request, task_id):
         task.due_date = new_due_date
         task.save()
         serializer = TaskSerializer(task)
-        return JsonResponse(serializer.data, status=status.HTTP_200_OK)
+        return Response({'message': "Task successfully updated", 'task': serializer.data}, status=status.HTTP_200_OK)
     else:
-        return JsonResponse({'error': 'Invalid request method'}, status=400)
+        return Response({'message': 'Invalid request method'}, status=400)
 
 @api_view(['DELETE'])
 def delete_all_users(request):
@@ -279,7 +293,7 @@ def get_company_by_id(request, company_id):
         serializer = CompanySerializer(company)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Company.DoesNotExist:
-        return Response({'detail': 'Company not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'message': 'Company not found'}, status=status.HTTP_404_NOT_FOUND)
     
 @api_view(['GET'])
 def get_all_tasks(request):
@@ -296,7 +310,7 @@ def get_tasks_for_company(request, company_id):
     tasks = Task.objects.filter(assigned_user__in=users_in_company)
     serializer = TaskSerializer(tasks, many=True)
     tasks_data = serializer.data
-    return JsonResponse({"tasks": tasks_data})
+    return Response({"tasks": tasks_data})
 
 @api_view(['GET'])
 @authentication_classes([SessionAuthentication])

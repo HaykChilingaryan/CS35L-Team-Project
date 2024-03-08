@@ -12,3 +12,35 @@ export const getCookie = (name) => {
   }
   return cookieValue;
 };
+
+export const changeUserPassword = (newPassword) => {
+  return fetch("http://localhost:8000/backend/users/me/pass", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({ newPassword }),
+  });
+};
+
+export const logout = () => {
+  return fetch("http://localhost:8000/backend/auth/logout/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CsrfToken": getCookie("csrftoken"),
+    },
+  });
+};
+
+export const login = (username, password) => {
+  return fetch("http://localhost:8000/backend/auth/login/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Csrftoken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({ username, password }),
+  });
+};

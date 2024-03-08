@@ -3,11 +3,11 @@ import "./Sidebar.css";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Offcanvas } from "bootstrap";
-import { getCookie } from "../../actions/auth/auth";
+import { getSessionUser } from "../../actions/auth/userUtils";
+import { logout } from "../../actions/auth/auth";
 
 const Sidebar = () => {
   const [username, setUsername] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const location = useLocation();
 
   const navigate = useNavigate();
@@ -26,15 +26,7 @@ const Sidebar = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:8000/backend/auth/logout/",
-        {
-          method: "POST",
-          headers: {
-            "X-CsrfToken": getCookie("csrftoken"),
-          },
-        }
-      );
+      const response = await logout();
 
       if (response.ok) {
         setUsername("");
@@ -48,19 +40,9 @@ const Sidebar = () => {
   };
 
   useEffect(() => {
-    setUsername("");
     const getUser = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:8000/backend/users/me/`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Csrftoken": getCookie("csrftoken"),
-            },
-          }
-        );
+        const response = await getSessionUser();
 
         if (!response.ok) {
           return null;

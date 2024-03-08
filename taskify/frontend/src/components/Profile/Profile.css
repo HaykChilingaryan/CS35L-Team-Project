@@ -1,4 +1,30 @@
-.form-control:focus{
+* {
+    font-family: 'Rajdhani';
+ }
+ 
+ .form-control:focus{
     box-shadow: none;
     border: 1px solid;
-}
+ }
+ 
+ .rounded-container {
+    border-radius: 15px;
+    overflow: hidden;
+ }
+ 
+ .bg-custom {
+    background-color: whitesmoke;
+ }
+ 
+ .border-custom {
+    border: 1px solid black;
+    background-color: white;
+ }
+ 
+ .page-background {
+    background-color: whitesmoke;
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+ }

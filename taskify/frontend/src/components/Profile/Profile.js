@@ -85,102 +85,109 @@ const Profile = () => {
   }, [location.pathname]);
 
   return (
-    <div className="container rounded bg-white mt-5 mb-5">
-      {error && (
-        <ErrorModal errorMessage={error} onClose={handleCloseErrorModal} />
-      )}
-      <div className="row">
-        <div className="col-md-5 border-right">
-          <div className="p-3 py-5">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h3 className="text-right">Profile</h3>
-            </div>
-            <div className="row mt-2">
-              <div className="col-md-6">
-                <label className="labels">Username</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={userDetails.username}
-                  value=""
-                  style={{ width: "235px" }}
-                  disabled
-                />
+    <div className="page-background">
+      <div className="rounded-container">
+      <div className="container rounded border-custom mt-5 mb-5">
+        {error && (
+          <ErrorModal errorMessage={error} onClose={handleCloseErrorModal} />
+        )}
+        <div className="row">
+          <div className="col-md-5 border-right">
+            <div className="p-3 py-5">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h3 className="text-right">
+                  <i className="bi bi-person"></i>Profile</h3>
               </div>
-            </div>
-            <div className="row mt-2">
-              <div className="col-md-6">
-                <label className="labels">Company</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={userDetails.company}
-                  value=""
-                  style={{ width: "235px" }}
-                  disabled
-                />
-              </div>
-            </div>
-            <div className="row mt-2">
-              <div className="col-md-6">
-                <label className="labels">First Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={userDetails.first_name}
-                  value=""
-                  style={{ width: "235px" }}
-                  disabled
-                />
-              </div>
-            </div>
-            <div className="row mt-2">
-              <div className="col-md-6">
-                <label className="labels">Last Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={userDetails.last_name}
-                  value=""
-                  style={{ width: "235px" }}
-                  disabled
-                />
-              </div>
-            </div>
-            <div className="row mt-2">
-              <div className="col-md-6">
-                <label className="labels">Reset Password</label>
-                <div className="d-flex border rounded">
+              <div className="row mt-2">
+                <div className="col-md-6">
+                  <label className="labels">Username</label>
                   <input
-                    type={showPassword ? "text" : "password"}
-                    className="form-control border-0"
-                    onChange={handleInputChange}
-                    style={{ width: "250px" }}
+                    type="text"
+                    className="form-control"
+                    placeholder={userDetails.username}
+                    value=""
+                    style={{ width: "235px" }}
+                    disabled
                   />
-                  <button
-                    className="btn  btn-md border-0"
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    <i className="bi bi-eye"></i>
-                  </button>
                 </div>
               </div>
-              <div className="mt-2">
-                <button
-                  className="btn btn-sm btn-outline-dark px-5"
-                  type="button"
-                  style={{ width: "200px" }}
-                  onClick={() => handlePasswordChange()}
-                >
-                  Change Password
-                </button>
+              <div className="row mt-2">
+                <div className="col-md-6">
+                  <label className="labels">Company</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder={userDetails.company}
+                    value=""
+                    style={{ width: "235px" }}
+                    disabled
+                  />
+                </div>
+              </div>
+              <div className="row mt-2">
+                <div className="col-md-10">
+                  <label className="labels">First Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder={userDetails.first_name}
+                    value=""
+                    style={{ width: "235px" }}
+                    disabled
+                  />
+                </div>
+              </div>
+              <div className="row mt-2">
+                <div className="col-md-10">
+                  <label className="labels">Last Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder={userDetails.last_name}
+                    value=""
+                    style={{ width: "235px" }}
+                    disabled
+                  />
+                </div>
+              </div>
+              <div className="row mt-2">
+                <div className="col-md-10">
+                  <label className="labels">Reset Password</label>
+                  <div className="d-flex border rounded"
+                    style={{ width: "235px"}}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      className="form-control border-0"
+                      onChange={handleInputChange}
+                      style={{ width: "auto" }}
+                    />
+                    <button
+                      className="btn  btn-md border-0"
+                      type="button"
+                      style={{ width: "autp"}}
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      <i className="bi bi-eye"></i>
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <button
+                    className="btn btn-sm btn-outline-dark px-5"
+                    type="button"
+                    style={{ width: "200px" }}
+                    onClick={() => handlePasswordChange()}
+                  >
+                    Change Password
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
   );
 };
 

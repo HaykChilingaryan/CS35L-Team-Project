@@ -1,49 +1,34 @@
 import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.css";
 import "./CalendarView.css";
-import { getCookie } from "../../actions/auth/auth";
-import { handleTaskStatus } from "../../actions/auth/taskUtils";
+import { handleTaskStatus, getTasks } from "../../actions/auth/taskUtils";
+import { getUserById } from "../../actions/auth/userUtils";
+import ErrorModal from "../ErrorModal";
+import CalendarViewTaskDetailModal from "../../modals/ViewTaskDetailModal";
+import ViewTasksForDateModal from "../../modals/ViewTasksForDateModal";
 
 const CalendarView = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedDateTasks, setSelectedDateTasks] = useState([]);
-  const [tasksMap, setTasksMap] = useState(new Map());
   const [error, setError] = useState(null);
-
   const [updatingTask, setUpdatingTask] = useState({
     id: "",
     title: "",
     description: "",
     assigned_user: "",
-    due_date: "",
   });
+
+  const openViewTasksForDateModal = () => {
+    const modal = new bootstrap.Modal(document.getElementById("viewTaskModal"));
+    modal.show();
+  };
+
+  const closeErrorModal = () => {
+    setError(null);
+  };
 
   const handleStatusChange = (taskId, status) => {
     handleTaskStatus(taskId, status);
-  };
-  const fetchUserById = async (userId) => {
-    try {
-      const response = await fetch(
-        `http://localhost:8000/backend/users/${userId}`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Csrftoken": getCookie("csrftoken"),
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-
-      const userData = await response.json();
-      return userData; // This should contain the user's details
-    } catch (error) {
-      throw new Error(`Error fetching user by ID: ${error.message}`);
-    }
   };
 
   const handleViewTask = async (task) => {
@@ -52,8 +37,20 @@ const CalendarView = () => {
       title: task.title,
       description: task.description,
       assigned_user: await fetchUserById(task.assigned_user),
-      due_date: task.due_date.slice(0, -1),
     });
+  };
+
+  const fetchUserById = async (userId) => {
+    try {
+      const response = await getUserById(userId);
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      setError("Error fetching user by ID:", error.message);
+    }
   };
 
   useEffect(() => {
@@ -79,16 +76,8 @@ const CalendarView = () => {
       "November",
       "December",
     ];
-
     const fetchTasksAndDates = async () => {
-      fetch("http://localhost:8000/backend/users/me/tasks/", {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Csrftoken": getCookie("csrftoken"),
-        },
-      })
+      getTasks()
         .then((response) => {
           if (!response.ok) {
             throw new Error("Network response was not ok");
@@ -99,7 +88,6 @@ const CalendarView = () => {
           const inProgressTasks = tasks.filter(
             (task) => task.status === "InProgress"
           );
-
           const extractedDueDates = inProgressTasks.map((task) => {
             const dueDate = new Date(task.due_date);
             return {
@@ -108,79 +96,26 @@ const CalendarView = () => {
               day: dueDate.getDate(),
             };
           });
-
           const tasksByDate = new Map();
-
           inProgressTasks.forEach((task) => {
             const dueDate = new Date(task.due_date);
             const year = dueDate.getFullYear();
             const month = dueDate.getMonth() + 1;
             const day = dueDate.getDate();
-
             const yearMonthDateKey = `${year}-${month}-${day}`;
 
             if (!tasksByDate.has(yearMonthDateKey)) {
               tasksByDate.set(yearMonthDateKey, new Map());
             }
-
             tasksByDate.get(yearMonthDateKey).set(task.id, task);
           });
-
-          setTasksMap(tasksByDate);
           manipulate(extractedDueDates, tasksByDate);
         })
         .catch((error) => {
-          console.error("Error fetching tasks:", error);
-          setError("An unexpected error occurred");
+          setError(error.message);
         });
     };
     fetchTasksAndDates();
-
-    fetch(`http://localhost:8000/backend/users/me/`, {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Csrftoken": getCookie("csrftoken"),
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return response.json();
-      })
-      .then((user) => {
-        setIsManager(user.is_manager);
-        fetchCompanyUsers(user.company);
-      })
-      .catch((error) => {
-        setError(error.message);
-      });
-
-    const fetchCompanyUsers = async (id) => {
-      try {
-        const response = await fetch(
-          `http://localhost:8000/backend/company/${id}/users`,
-          {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Csrftoken": getCookie("csrftoken"),
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const companyUsers = await response.json();
-        setUsersOfCompany(companyUsers);
-      } catch (error) {
-        setError(error.message);
-      }
-    };
 
     const manipulate = (dueDates, tasksByDate) => {
       let dayone = new Date(year, month, 1).getDay();
@@ -207,7 +142,7 @@ const CalendarView = () => {
         let isDueDate = dueDates.some(
           (dueDate) =>
             dueDate.year === year &&
-            dueDate.month === month + 1 && // Months are zero-based in JavaScript Date objects
+            dueDate.month === month + 1 &&
             dueDate.day === i
         )
           ? "due-date"
@@ -226,7 +161,6 @@ const CalendarView = () => {
       currentDate.innerText = `${months[month]} ${year}`;
       daysTag.innerHTML = lit;
 
-      // add click event listeners to each date
       const dateElements = document.querySelectorAll(".calendar-dates li");
       dateElements.forEach((dateElement) => {
         dateElement.addEventListener("click", () => {
@@ -241,46 +175,31 @@ const CalendarView = () => {
           const tasksForSelectedDate = tasksByDate.get(yearMonthDateKey);
 
           if (tasksForSelectedDate) {
-            openModal();
+            openViewTasksForDateModal();
             setSelectedDateTasks(Array.from(tasksForSelectedDate.values()));
           }
         });
       });
     };
 
-    // click event listener for each icon
     prevNextIcon.forEach((icon) => {
-      // when click
       icon.addEventListener("click", () => {
-        // check if "calendar-prev" or "calendar-next"
         month = icon.id === "calendar-prev" ? month - 1 : month + 1;
-        // check for going to diff year
         if (month < 0 || month > 11) {
-          // set new date to first day of next year
           date = new Date(year, month, new Date().getDate());
-          // set new year
           year = date.getFullYear();
-          // set new month
           month = date.getMonth();
         } else {
-          // set curr date
           date = new Date();
         }
-        // update calendar display
         fetchTasksAndDates();
       });
     });
   }, []);
 
-  const openModal = () => {
-    const modal = new bootstrap.Modal(
-      document.getElementById("createTaskModal")
-    );
-    modal.show();
-  };
-
   return (
     <div>
+      {error && <ErrorModal errorMessage={error} onClose={closeErrorModal} />}
       <div
         className="card bg-white text-black"
         style={{
@@ -328,161 +247,17 @@ const CalendarView = () => {
           <ul className="calendar-dates"></ul>
         </div>
       </div>
-      {/* MODAL FOR TASK VIEW */}
-      <div
-        className="modal fade"
-        id="createTaskModal"
-        tabIndex="-1"
-        aria-labelledby="createTaskModalLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title" id="createTaskModalLabel">
-                {selectedDate}
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <div className="row g-0">
-                {selectedDateTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="col-md-8 d-flex column align-items-center task-container"
-                  >
-                    <div className="card-body">
-                      <h5 className="card-title">{task.title} </h5>
-                      <p className="card-text">
-                        <small>
-                          Due:{" "}
-                          {new Date(task.due_date).toLocaleString("en-US", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            timeZone: "UTC",
-                          })}
-                        </small>
-                      </p>
-                    </div>
-                    <div className="d-flex align-items-center">
-                      <button
-                        className="btn btn-danger btn-md me-2"
-                        onClick={() => handleStatusChange(task.id, "Deleted")}
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
-                      <button
-                        className="btn btn-primary btn-md me-2"
-                        data-bs-toggle="modal"
-                        data-bs-target="#taskDetailModal"
-                        onClick={() => handleViewTask(task)}
-                      >
-                        <i className="bi bi-eye"></i>
-                      </button>
-                      <button
-                        className="btn btn-success btn-md"
-                        onClick={() => handleStatusChange(task.id, "Completed")}
-                      >
-                        <i className="bi bi-check"></i>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-outline-danger"
-                data-bs-dismiss="taskDetailModal"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div
-        className="modal fade"
-        id="taskDetailModal"
-        tabIndex="-1"
-        aria-labelledby="taskDetailModalLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title" id="taskDetailModalLabel">
-                View Task: Due - {selectedDate}
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              <form>
-                <div className="mb-3">
-                  <label htmlFor="title" className="form-label">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="title"
-                    name="title"
-                    placeholder={updatingTask.title}
-                    disabled
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="description" className="form-label">
-                    Description
-                  </label>
-                  <textarea
-                    className="form-control"
-                    id="description"
-                    name="description"
-                    rows="3"
-                    placeholder={updatingTask.description}
-                    disabled
-                  ></textarea>
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="selectedUser" className="form-label">
-                    User
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="title"
-                    name="title"
-                    placeholder={updatingTask.assigned_user.first_name}
-                    disabled
-                  />
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-outline-danger"
-                data-bs-dismiss="modal"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ViewTasksForDateModal
+        selectedDate={selectedDate}
+        selectedDateTasks={selectedDateTasks}
+        handleStatusChange={handleStatusChange}
+        handleViewTask={handleViewTask}
+      />
+      <CalendarViewTaskDetailModal
+        updatingTask={updatingTask}
+        selectedDate={selectedDate}
+      />
     </div>
   );
 };

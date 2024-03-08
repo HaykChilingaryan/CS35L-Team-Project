@@ -113,7 +113,8 @@ const Profile = () => {
            <div className="col-md-5 border-right">
              <div className="p-3 py-5">
                <div className="d-flex justify-content-between align-items-center mb-3">
-                 <h3 className="text-right">Profile</h3>
+                 <h3 className="text-right">
+                  <i className="bi bi-person"></i>Profile</h3>
                </div>
                <div className="row mt-2">
                  <div className="col-md-6">
@@ -142,7 +143,7 @@ const Profile = () => {
                  </div>
                </div>
                <div className="row mt-2">
-                 <div className="col-md-6">
+                 <div className="col-md-10">
                    <label className="labels">First Name</label>
                    <input
                      type="text"
@@ -155,7 +156,7 @@ const Profile = () => {
                  </div>
                </div>
                <div className="row mt-2">
-                 <div className="col-md-6">
+                 <div className="col-md-10">
                    <label className="labels">Last Name</label>
                    <input
                      type="text"
@@ -168,18 +169,19 @@ const Profile = () => {
                  </div>
                </div>
                <div className="row mt-2">
-                 <div className="col-md-6">
+                 <div className="col-md-10">
                    <label className="labels">Reset Password</label>
-                   <div className="d-flex border rounded">
+                   <div className="d-flex border rounded" style={{width: "235px"}}>
                      <input
                        type={showPassword ? "text" : "password"}
                        className="form-control border-0"
                        onChange={handleInputChange}
-                       style={{ width: "250px" }}
+                       style={{ width: "auto" }}
                      />
                      <button
-                       className="btn  btn-md border-0"
+                       className="btn btn-md border-0"
                        type="button"
+                       style={{ width: "auto"}}
                        onClick={() => setShowPassword(!showPassword)}
                      >
                        <i className="bi bi-eye"></i>

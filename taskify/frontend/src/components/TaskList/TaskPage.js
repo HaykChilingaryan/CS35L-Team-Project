@@ -5,6 +5,7 @@ import { getCookie } from "../../actions/auth/auth";
 import { handleTaskStatus, getTasks } from "../../actions/auth/taskUtils";
 import ErrorModal from "../ErrorModal";
 import SuccessModal from "../SuccessModal";
+import CreateUserModal from "../../modals/CreateUserModal";
 
 const TaskPage = () => {
   const filterOptions = ["Title", "Date", "User Name"];
@@ -25,6 +26,22 @@ const TaskPage = () => {
     selectedUser: "",
     dueDate: "",
   });
+
+  const [newUser, setNewUser] = useState({
+    username: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    isManager: "",
+    company: "",
+  });
+
+  const openCreateUserModal = () => {
+    const modal = new bootstrap.Modal(
+      document.getElementById("createUserModal")
+    );
+    modal.show();
+  };
 
   const [updatingTask, setUpdatingTask] = useState({
     id: "",
@@ -201,6 +218,14 @@ const TaskPage = () => {
     }));
   };
 
+  const handleNewUserInput = (e) => {
+    const { name, value } = e.target;
+    setNewUser((prevUser) => ({
+      ...prevUser,
+      [name]: value,
+    }));
+  };
+
   const handleStatusChange = (taskId, status) => {
     handleTaskStatus(taskId, status)
       .then((response) => {
@@ -304,8 +329,19 @@ const TaskPage = () => {
         />
       )}
 
-      <div className="d-flex justify-content-between align-items-center">
-        <h1>Task List</h1>
+      <div className="d-flex align-items-center">
+        <h1 className="title-header">Task List</h1>
+        {isManager && (
+          <button
+            className="me-2 btn btn-outline-dark"
+            data-bs-toggle="modal"
+            data-bs-target="#createUserModal"
+            style={{ fontSize: "1.2rem" }}
+            onClick={openCreateUserModal}
+          >
+            Create User
+          </button>
+        )}
         {isManager && (
           <button
             className="btn btn-outline-dark"
@@ -707,6 +743,10 @@ const TaskPage = () => {
           </div>
         </div>
       </div>
+      <CreateUserModal
+        newUser={newUser}
+        handleNewUserInput={handleNewUserInput}
+      />
     </div>
   );
 };

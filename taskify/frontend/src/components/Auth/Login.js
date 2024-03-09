@@ -59,34 +59,37 @@ const Login1 = () => {
                   src={logo}
                   alt="Taskify Logo"
                 />
-                <div className="input-group form-white mb-4 column d-flex">
-                  <span className="input-group-text">
-                    <i className="bi bi-person-fill"></i>
-                  </span>
-                  <input
-                    type="text"
-                    id="typeEmailX"
-                    className="form-control form-control-lg"
-                    placeholder="Username"
-                    name="username"
-                    onChange={handleInputChange}
-                    value={loginInfo.username}
-                  />
-                </div>
-                <div className="input-group form-white mb-4 column d-flex">
-                  <span className="input-group-text">
-                    <i className="bi bi-lock-fill"></i>
-                  </span>
-                  <input
-                    type="password"
-                    name="password"
-                    id="typePasswordX"
-                    className="form-control form-control-lg"
-                    placeholder="Password"
-                    onChange={handleInputChange}
-                    value={loginInfo.password}
-                  />
-                </div>
+                <form>
+                  <div className="input-group form-white mb-4 column d-flex">
+                    <span className="input-group-text">
+                      <i className="bi bi-person-fill"></i>
+                    </span>
+                    <input
+                      type="text"
+                      id="typeEmailX"
+                      className="form-control form-control-lg"
+                      placeholder="Username"
+                      name="username"
+                      onChange={handleInputChange}
+                      value={loginInfo.username}
+                    />
+                  </div>
+                  <div className="input-group form-white mb-4 column d-flex">
+                    <span className="input-group-text">
+                      <i className="bi bi-lock-fill"></i>
+                    </span>
+                    <input
+                      type="password"
+                      name="password"
+                      id="typePasswordX"
+                      className="form-control form-control-lg"
+                      placeholder="Password"
+                      onChange={handleInputChange}
+                      value={loginInfo.password}
+                      autoComplete="on"
+                    />
+                  </div>
+                </form>
                 <button
                   className="btn btn-outline-light btn-lg px-5"
                   type="button"
@@ -99,11 +102,6 @@ const Login1 = () => {
                     {error}
                   </div>
                 )}
-              </div>
-              <div>
-                <button className="btn btn-ra mt-3" type="submit">
-                  Request Access
-                </button>
               </div>
             </div>
           </div>

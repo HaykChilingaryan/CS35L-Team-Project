@@ -1,18 +1,18 @@
 import React from "react";
 
-const CreateUserModal = ({ newUser, handleNewUserInput, handleCreateTask }) => {
+const CreateUserModal = ({ handleNewUserInput, handleCreateUser }) => {
   return (
     <div
       className="modal fade"
       id="createUserModal"
       tabIndex="-1"
-      aria-labelledby="createUserModal"
+      aria-labelledby="createUserModalLabel"
       aria-hidden="true"
     >
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title" id="createUserModal">
+            <h5 className="modal-title" id="createUserModalLabel">
               Create User
             </h5>
             <button
@@ -23,7 +23,6 @@ const CreateUserModal = ({ newUser, handleNewUserInput, handleCreateTask }) => {
             ></button>
           </div>
           <div className="modal-body">
-            {/* Form for creating a new user */}
             <form>
               <div className="mb-3">
                 <label htmlFor="title" className="form-label">
@@ -34,7 +33,6 @@ const CreateUserModal = ({ newUser, handleNewUserInput, handleCreateTask }) => {
                   className="form-control"
                   id="username"
                   name="username"
-                  value={newUser.username}
                   onChange={handleNewUserInput}
                 />
               </div>
@@ -47,7 +45,6 @@ const CreateUserModal = ({ newUser, handleNewUserInput, handleCreateTask }) => {
                   className="form-control"
                   id="password"
                   name="password"
-                  value={newUser.password}
                   onChange={handleNewUserInput}
                 />
               </div>
@@ -60,7 +57,6 @@ const CreateUserModal = ({ newUser, handleNewUserInput, handleCreateTask }) => {
                   className="form-control"
                   id="firstName"
                   name="firstName"
-                  value={newUser.firstName}
                   onChange={handleNewUserInput}
                 />
               </div>
@@ -73,20 +69,18 @@ const CreateUserModal = ({ newUser, handleNewUserInput, handleCreateTask }) => {
                   className="form-control"
                   id="lastName"
                   name="lastName"
-                  value={newUser.lastName}
                   onChange={handleNewUserInput}
                 />
               </div>
               <div className="mb-3">
-                <label htmlFor="title" className="form-label">
-                  Manager
+                <label htmlFor="email" className="form-label">
+                  Email
                 </label>
                 <input
-                  type="checkbox"
+                  type="email"
                   className="form-control"
-                  id="isManager"
-                  name="isManager"
-                  value={newUser.isManager}
+                  id="email"
+                  name="email"
                   onChange={handleNewUserInput}
                 />
               </div>
@@ -103,7 +97,7 @@ const CreateUserModal = ({ newUser, handleNewUserInput, handleCreateTask }) => {
             <button
               type="button"
               className="btn btn-outline-success"
-              onClick={handleCreateTask}
+              onClick={handleCreateUser}
               data-bs-dismiss="modal"
             >
               Create

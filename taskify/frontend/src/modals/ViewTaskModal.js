@@ -1,19 +1,23 @@
 import React from "react";
 
-const CalendarViewTaskDetailModal = ({ selectedDate, updatingTask }) => {
+const ViewTaskModal = ({
+  updatingTask,
+  handleUpdatingTaskInputChange,
+  handleUpdateTask,
+}) => {
   return (
     <div
       className="modal fade"
-      id="taskDetailModal"
+      id="updateTaskModal"
       tabIndex="-1"
-      aria-labelledby="taskDetailModalLabel"
+      aria-labelledby="updateTaskModalLabel"
       aria-hidden="true"
     >
       <div className="modal-dialog">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title" id="taskDetailModalLabel">
-              View Task: Due - {selectedDate}
+            <h5 className="modal-title" id="updateTaskModalLabel">
+              View/Update Task
             </h5>
             <button
               type="button"
@@ -33,8 +37,8 @@ const CalendarViewTaskDetailModal = ({ selectedDate, updatingTask }) => {
                   className="form-control"
                   id="title"
                   name="title"
-                  placeholder={updatingTask.title}
-                  disabled
+                  value={updatingTask.title}
+                  onChange={handleUpdatingTaskInputChange}
                 />
               </div>
               <div className="mb-3">
@@ -46,25 +50,38 @@ const CalendarViewTaskDetailModal = ({ selectedDate, updatingTask }) => {
                   id="description"
                   name="description"
                   rows="3"
-                  placeholder={updatingTask.description}
-                  disabled
+                  value={updatingTask.description}
+                  onChange={handleUpdatingTaskInputChange}
                 ></textarea>
               </div>
               <div className="mb-3">
-                <label htmlFor="name" className="form-label">
-                  User
+                <label htmlFor="selectedUser" className="form-label">
+                  Select User
                 </label>
                 <input
                   type="text"
-                  autoComplete="name"
                   className="form-control"
                   id="name"
                   name="name"
+                  autoComplete="name"
                   placeholder={
                     updatingTask.assigned_user.first_name +
                     " " +
                     updatingTask.assigned_user.last_name
                   }
+                  disabled
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="dueDate" className="form-label">
+                  Due Date
+                </label>
+                <input
+                  type="datetime-local"
+                  className="form-control"
+                  id="dueDate"
+                  name="dueDate"
+                  value={updatingTask.due_date}
                   disabled
                 />
               </div>
@@ -76,7 +93,15 @@ const CalendarViewTaskDetailModal = ({ selectedDate, updatingTask }) => {
               className="btn btn-outline-danger"
               data-bs-dismiss="modal"
             >
-              Close
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline-success"
+              onClick={handleUpdateTask}
+              data-bs-dismiss="modal"
+            >
+              Update
             </button>
           </div>
         </div>
@@ -85,4 +110,4 @@ const CalendarViewTaskDetailModal = ({ selectedDate, updatingTask }) => {
   );
 };
 
-export default CalendarViewTaskDetailModal;
+export default ViewTaskModal;

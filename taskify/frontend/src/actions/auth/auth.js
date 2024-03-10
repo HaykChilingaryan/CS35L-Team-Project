@@ -44,3 +44,23 @@ export const login = (username, password) => {
     body: JSON.stringify({ username, password }),
   });
 };
+
+export const register = (newUser) => {
+  return fetch("http://localhost:8000/backend/auth/register", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Csrftoken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({
+      username: newUser.username,
+      password: newUser.password,
+      first_name: newUser.firstName,
+      last_name: newUser.lastName,
+      company: newUser.company,
+      email: newUser.email,
+      is_manager: false,
+    }),
+  });
+};

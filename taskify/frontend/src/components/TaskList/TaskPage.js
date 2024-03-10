@@ -1,11 +1,24 @@
 import React, { useState, useEffect } from "react";
+import { getCookie, register } from "../../actions/auth/auth";
+import {
+  handleTaskStatus,
+  getTasks,
+  createTask,
+  updateTask,
+} from "../../actions/auth/taskUtils";
+import ErrorModal from "../../modals/ErrorModal";
+import SuccessModal from "../../modals/SuccessModal";
 import "bootstrap/dist/css/bootstrap.css";
 import "./TaskPage.css";
-import { getCookie } from "../../actions/auth/auth";
-import { handleTaskStatus, getTasks } from "../../actions/auth/taskUtils";
-import ErrorModal from "../ErrorModal";
-import SuccessModal from "../SuccessModal";
+import CreateTaskModal from "../../modals/CreateTaskModal";
 import CreateUserModal from "../../modals/CreateUserModal";
+import ViewTaskModal from "../../modals/ViewTaskModal";
+import {
+  getCompanyUsers,
+  getSessionUser,
+  getUserById,
+  getUserCompany,
+} from "../../actions/auth/userUtils";
 
 const TaskPage = () => {
   const filterOptions = ["Title", "Date", "User Name"];
@@ -17,7 +30,6 @@ const TaskPage = () => {
   const [isManager, setIsManager] = useState(false);
   const [usersOfCompany, setUsersOfCompany] = useState(null);
   const [userDetailsMap, setUserDetailsMap] = useState(new Map());
-  const [tasks, setTasks] = useState([]);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [newTask, setNewTask] = useState({
@@ -32,16 +44,8 @@ const TaskPage = () => {
     password: "",
     firstName: "",
     lastName: "",
-    isManager: "",
-    company: "",
+    email: "",
   });
-
-  const openCreateUserModal = () => {
-    const modal = new bootstrap.Modal(
-      document.getElementById("createUserModal")
-    );
-    modal.show();
-  };
 
   const [updatingTask, setUpdatingTask] = useState({
     id: "",
@@ -50,63 +54,27 @@ const TaskPage = () => {
     assigned_user: "",
     due_date: "",
   });
+
+  const setErrorAndFade = (message) => {
+    setError(message);
+    setTimeout(() => {
+      setError(null);
+    }, 10000);
+  };
+
+  const setSuccessAndFade = (message) => {
+    setSuccess(message);
+    setTimeout(() => {
+      setSuccess(null);
+    }, 10000);
+  };
+
   const handleCloseErrorModal = () => {
     setError(null);
   };
+
   const handleCloseSuccessModal = () => {
     setSuccess(null);
-  };
-
-  const fetchUserDetailsForTasks = async (taskList) => {
-    try {
-      const userDetailsPromises = taskList.map(async (task) => {
-        const user = await fetchUserById(task.assigned_user);
-        return {
-          taskId: task.id,
-          firstName: user.first_name,
-          lastName: user.last_name,
-        };
-      });
-
-      const userDetailsList = await Promise.all(userDetailsPromises);
-
-      const userDetailsMapCopy = new Map(userDetailsMap);
-
-      userDetailsList.forEach((userDetails) => {
-        userDetailsMapCopy.set(userDetails.taskId, {
-          firstName: userDetails.firstName,
-          lastName: userDetails.lastName,
-        });
-      });
-      setUserDetailsMap(userDetailsMapCopy);
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  const fetchUserById = async (userId) => {
-    try {
-      const response = await fetch(
-        `http://localhost:8000/backend/users/${userId}`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Csrftoken": getCookie("csrftoken"),
-          },
-        }
-      );
-
-      if (!response.ok) {
-        setError(response.message);
-      }
-
-      const userData = await response.json();
-      return userData;
-    } catch (error) {
-      setError(error.message);
-    }
   };
 
   const handleTabChange = (tab) => {
@@ -120,76 +88,6 @@ const TaskPage = () => {
 
   const handleFilterChange = (e) => {
     setFilterValue(e.target.value);
-  };
-
-  const handleCreateTask = async () => {
-    try {
-      if (
-        !newTask.title ||
-        !newTask.description ||
-        !newTask.selectedUser ||
-        !newTask.dueDate
-      ) {
-        setError("Please fill in all required fields");
-        return;
-      }
-
-      const response = await fetch(
-        "http://localhost:8000/backend/users/me/tasks/",
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Csrftoken": getCookie("csrftoken"),
-          },
-          body: JSON.stringify({
-            title: newTask.title,
-            description: newTask.description,
-            assigned_user: newTask.selectedUser,
-            due_date: newTask.dueDate,
-          }),
-        }
-      );
-      const responseData = await response.json();
-      if (!response.ok) {
-        setError(responseData.message);
-      } else {
-        window.location.reload();
-        setSuccess(responseData.message);
-      }
-    } catch (error) {
-      setError(error.message);
-    }
-  };
-
-  const handleUpdateTask = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:8000/backend/users/me/tasks/",
-        {
-          method: "PATCH",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Csrftoken": getCookie("csrftoken"),
-          },
-          body: JSON.stringify({
-            id: updatingTask.id,
-            title: updatingTask.title,
-            description: updatingTask.description,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        setError(response.message);
-      }
-
-      window.location.reload();
-    } catch (error) {
-      setError(error.message);
-    }
   };
 
   const handleViewTask = async (task) => {
@@ -226,20 +124,126 @@ const TaskPage = () => {
     }));
   };
 
+  const fetchUserDetailsForTasks = async (taskList) => {
+    try {
+      const userDetailsPromises = taskList.map(async (task) => {
+        const user = await fetchUserById(task.assigned_user);
+        return {
+          taskId: task.id,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          username: user.username,
+        };
+      });
+
+      const userDetailsList = await Promise.all(userDetailsPromises);
+
+      const userDetailsMapCopy = new Map(userDetailsMap);
+
+      userDetailsList.forEach((userDetails) => {
+        userDetailsMapCopy.set(userDetails.taskId, {
+          firstName: userDetails.firstName,
+          lastName: userDetails.lastName,
+          username: userDetails.username,
+        });
+      });
+      setUserDetailsMap(userDetailsMapCopy);
+    } catch (error) {
+      setErrorAndFade(error.message);
+    }
+  };
+
+  const fetchUserById = async (userId) => {
+    try {
+      const response = await getUserById(userId);
+
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+
+      const userData = await response.json();
+      return userData;
+    } catch (error) {
+      setErrorAndFade(error.message);
+    }
+  };
+
+  const handleCreateTask = async () => {
+    try {
+      if (
+        !newTask.title ||
+        !newTask.description ||
+        !newTask.selectedUser ||
+        !newTask.dueDate
+      ) {
+        setErrorAndFade("Please fill in all required fields");
+        return;
+      }
+
+      const response = await createTask(newTask);
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error("Network Response was not ok");
+      } else {
+        fetchTasks();
+        setSuccessAndFade(responseData.message);
+      }
+    } catch (error) {
+      setErrorAndFade(error.message);
+    }
+  };
+
+  const handleCreateUser = async () => {
+    try {
+      if (
+        !newUser.username ||
+        !newUser.password ||
+        !newUser.firstName ||
+        !newUser.lastName
+      ) {
+        setErrorAndFade("Please fill in all required fields");
+        return;
+      }
+      const response = await register(newUser);
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      } else {
+        setSuccessAndFade(responseData.message);
+        fetchCompanyUsers(newUser.company);
+      }
+    } catch (error) {
+      setErrorAndFade(error.message);
+    }
+  };
+
+  const handleUpdateTask = async () => {
+    try {
+      const response = await updateTask(updatingTask);
+      if (!response.ok) {
+        throw new Error("Network Response was not ok");
+      }
+      fetchTasks();
+    } catch (error) {
+      setErrorAndFade(error.message);
+    }
+  };
+
   const handleStatusChange = (taskId, status) => {
     handleTaskStatus(taskId, status)
       .then((response) => {
         if (!response.ok) {
-          setError("Network response was not ok");
+          throw new Error("Network Response was not ok");
         }
         return response.json();
       })
       .then((data) => {
         fetchTasks();
-        setSuccess("Task Status Updated: " + status);
+        setSuccessAndFade("Task Status Updated: " + status);
       })
       .catch((error) => {
-        console.error("Error updating task status:", error.message);
+        setErrorAndFade(error.message);
       });
   };
 
@@ -258,28 +262,33 @@ const TaskPage = () => {
         const completed = tasksData.filter(
           (task) => task.status === "Completed"
         );
-        setTasks(tasksData);
         setInProgressTasks(inProgress);
         setCompletedTasks(completed);
         fetchUserDetailsForTasks(tasksData);
       })
       .catch((error) => {
-        setError(error.message);
+        setErrorAndFade(error.message);
       });
   };
 
+  const fetchCompanyUsers = async (companyId) => {
+    try {
+      const response = await getCompanyUsers(companyId);
+      if (!response.ok) {
+        throw new Error("Network Response was not ok");
+      }
+      const companyUsers = await response.json();
+      setUsersOfCompany(companyUsers);
+    } catch (error) {
+      setErrorAndFade(error.message);
+    }
+  };
+
   useEffect(() => {
-    fetch(`http://localhost:8000/backend/users/me/`, {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Csrftoken": getCookie("csrftoken"),
-      },
-    })
+    getSessionUser()
       .then((response) => {
         if (!response.ok) {
-          setError(response.message);
+          throw new Error("Network Response was not ok");
         }
         return response.json();
       })
@@ -287,34 +296,13 @@ const TaskPage = () => {
         setIsManager(user.is_manager);
         fetchTasks();
         fetchCompanyUsers(user.company);
+        setNewUser({
+          company: user.company,
+        });
       })
       .catch((error) => {
-        setError(error.message);
+        setErrorAndFade(error.message);
       });
-
-    const fetchCompanyUsers = async (id) => {
-      try {
-        const response = await fetch(
-          `http://localhost:8000/backend/company/${id}/users`,
-          {
-            method: "GET",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-              "X-Csrftoken": getCookie("csrftoken"),
-            },
-          }
-        );
-
-        if (!response.ok) {
-          setError(response.message);
-        }
-        const companyUsers = await response.json();
-        setUsersOfCompany(companyUsers);
-      } catch (error) {
-        setError(error.message);
-      }
-    };
   }, [location.pathname, filterValue, searchQuery]);
 
   return (
@@ -337,7 +325,6 @@ const TaskPage = () => {
             data-bs-toggle="modal"
             data-bs-target="#createUserModal"
             style={{ fontSize: "1.2rem" }}
-            onClick={openCreateUserModal}
           >
             Create User
           </button>
@@ -534,218 +521,22 @@ const TaskPage = () => {
           </div>
         </div>
       </div>
-      {/* MODAL FOR TASK CREATION */}
-      <div
-        className="modal fade"
-        id="createTaskModal"
-        tabIndex="-1"
-        aria-labelledby="createTaskModalLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title" id="createTaskModalLabel">
-                Create Task
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              {/* Form for creating a new task */}
-              <form>
-                <div className="mb-3">
-                  <label htmlFor="title" className="form-label">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="title"
-                    name="title"
-                    value={newTask.title}
-                    onChange={handleNewTaskInputChange}
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="description" className="form-label">
-                    Description
-                  </label>
-                  <textarea
-                    className="form-control"
-                    id="description"
-                    name="description"
-                    rows="3"
-                    value={newTask.description}
-                    onChange={handleNewTaskInputChange}
-                  ></textarea>
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="selectedUser" className="form-label">
-                    Select User
-                  </label>
-                  {/* Replace the options and values as needed */}
-                  <select
-                    className="form-select"
-                    id="selectedUser"
-                    name="selectedUser"
-                    value={newTask.selectedUser}
-                    onChange={handleNewTaskInputChange}
-                  >
-                    <option value="">Select User</option>
-                    {usersOfCompany &&
-                      usersOfCompany.map((user) => (
-                        <option key={user.id} value={user.id}>
-                          {user.first_name} {user.last_name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="dueDate" className="form-label">
-                    Due Date
-                  </label>
-                  <input
-                    type="datetime-local"
-                    className="form-control"
-                    id="dueDate"
-                    name="dueDate"
-                    value={newTask.dueDate}
-                    onChange={handleNewTaskInputChange}
-                  />
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-outline-danger"
-                data-bs-dismiss="modal"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline-success"
-                onClick={handleCreateTask}
-                data-bs-dismiss="modal"
-              >
-                Create
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div
-        className="modal fade"
-        id="updateTaskModal"
-        tabIndex="-1"
-        aria-labelledby="updateTaskModalLabel"
-        aria-hidden="true"
-      >
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title" id="updateTaskModalLabel">
-                View/Update Task
-              </h5>
-              <button
-                type="button"
-                className="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"
-              ></button>
-            </div>
-            <div className="modal-body">
-              {/* Form for updating a new task */}
-              <form>
-                <div className="mb-3">
-                  <label htmlFor="title" className="form-label">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="title"
-                    name="title"
-                    value={updatingTask.title}
-                    onChange={handleUpdatingTaskInputChange}
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="description" className="form-label">
-                    Description
-                  </label>
-                  <textarea
-                    className="form-control"
-                    id="description"
-                    name="description"
-                    rows="3"
-                    value={updatingTask.description}
-                    onChange={handleUpdatingTaskInputChange}
-                  ></textarea>
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="selectedUser" className="form-label">
-                    Select User
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="name"
-                    name="name"
-                    autoComplete="name"
-                    placeholder={
-                      updatingTask.assigned_user.first_name +
-                      " " +
-                      updatingTask.assigned_user.last_name
-                    }
-                    disabled
-                  />
-                </div>
-                <div className="mb-3">
-                  <label htmlFor="dueDate" className="form-label">
-                    Due Date
-                  </label>
-                  <input
-                    type="datetime-local"
-                    className="form-control"
-                    id="dueDate"
-                    name="dueDate"
-                    value={updatingTask.due_date}
-                    disabled
-                  />
-                </div>
-              </form>
-            </div>
-            <div className="modal-footer">
-              <button
-                type="button"
-                className="btn btn-outline-danger"
-                data-bs-dismiss="modal"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline-success"
-                onClick={handleUpdateTask}
-                data-bs-dismiss="modal"
-              >
-                Update
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <CreateTaskModal
+        newTask={newTask}
+        handleNewTaskInputChange={handleNewTaskInputChange}
+        usersOfCompany={usersOfCompany}
+        handleCreateTask={handleCreateTask}
+      />
       <CreateUserModal
-        newUser={newUser}
         handleNewUserInput={handleNewUserInput}
+        handleCreateUser={handleCreateUser}
+      />
+
+      <ViewTaskModal
+        updatingTask={updatingTask}
+        handleUpdatingTaskInputChange={handleUpdatingTaskInputChange}
+        handleUpdateTask={handleUpdateTask}
       />
     </div>
   );

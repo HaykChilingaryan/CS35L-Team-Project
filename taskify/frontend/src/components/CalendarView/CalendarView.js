@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import "./CalendarView.css";
 import { handleTaskStatus, getTasks } from "../../actions/auth/taskUtils";
 import { getUserById } from "../../actions/auth/userUtils";
-import ErrorModal from "../ErrorModal";
+import ErrorModal from "../../modals/ErrorModal";
 import CalendarViewTaskDetailModal from "../../modals/ViewTaskDetailModal";
 import ViewTasksForDateModal from "../../modals/ViewTasksForDateModal";
 
@@ -29,6 +29,7 @@ const CalendarView = () => {
 
   const handleStatusChange = (taskId, status) => {
     handleTaskStatus(taskId, status);
+    window.location.reload();
   };
 
   const handleViewTask = async (task) => {
@@ -50,6 +51,9 @@ const CalendarView = () => {
       return data;
     } catch (error) {
       setError("Error fetching user by ID:", error.message);
+      setTimeout(() => {
+        setError(null);
+      }, 10000);
     }
   };
 
@@ -113,6 +117,9 @@ const CalendarView = () => {
         })
         .catch((error) => {
           setError(error.message);
+          setTimeout(() => {
+            setError(null);
+          }, 10000);
         });
     };
     fetchTasksAndDates();

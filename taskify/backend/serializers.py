@@ -9,7 +9,7 @@ class UserAuthenticationSerializer(serializers.Serializer):
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = ['username', 'password', 'first_name', 'last_name', 'is_manager', 'company']
+        fields = ['username', 'password', 'first_name', 'last_name', 'is_manager', 'company', 'email']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -19,12 +19,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['is_authenticated', 'id', 'username', 'password', 'first_name', 'last_name', 'created_at', 'is_manager', 'company']
+        fields = ['is_authenticated', 'id', 'username', 'password', 'first_name', 'last_name', 'is_manager', 'company', 'email']
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ["id","title", "description", "due_date", "assigned_user", "created_at","status"]
+        fields = ["id","title", "description", "due_date", "assigned_user","status"]
 
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:

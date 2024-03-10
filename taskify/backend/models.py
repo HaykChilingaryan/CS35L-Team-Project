@@ -19,27 +19,29 @@ class Task(models.Model):
     created_at = models.DateTimeField(default=datetime.now)
     assigned_user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='tasks')
 
-class CustomUserManager(BaseUserManager):
-    def create_user(self, username, password=None, **extra_fields):
-        if not username:
-            raise ValueError('The username field must be set')
-        user = self.model(username=username, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_superuser(self, username, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-
-        return self.create_user(username, password, **extra_fields)
 class Company(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
 
+class CustomUserManager(BaseUserManager):
+    def create_user(self, username, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(username=username, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, username, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(username, email, password, **extra_fields)
+
 class User(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=255, unique=True)
+    email = models.EmailField(unique=True, default='example@example.com')
     password = models.CharField(max_length=255, default='password', validators=[MinLengthValidator(8)])
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
@@ -49,11 +51,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'password', 'company']
+    USERNAME_FIELD = 'username' 
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'password', 'company', 'email']
 
-    # Specify a unique related_name for the groups field
     groups = models.ManyToManyField(Group, related_name='custom_user_groups')
     user_permissions = models.ManyToManyField(Permission, related_name='custom_user_permissions')
+
 
 

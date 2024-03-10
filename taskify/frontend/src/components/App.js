@@ -17,7 +17,7 @@ const App = () => {
     <Router>
       <Sidebar />
       <Routes>
-        <Route path="/" element={<Login1 />} />
+        <Route exact path="/" element={<Login1 />} />
         {<Route path="/tasklist" element={<TaskPage />} />}
         {<Route path="/profile" element={<Profile />} />}
         {<Route path="/calendar" element={<CalendarView />} />}

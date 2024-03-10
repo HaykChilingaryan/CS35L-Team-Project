@@ -50,6 +50,7 @@ const ViewTasksForDateModal = ({
                   <div className="d-flex align-items-center">
                     <button
                       className="btn btn-danger btn-md me-2"
+                      data-bs-dismiss="modal"
                       onClick={() => handleStatusChange(task.id, "Deleted")}
                     >
                       <i className="bi bi-trash"></i>
@@ -65,6 +66,7 @@ const ViewTasksForDateModal = ({
                     <button
                       className="btn btn-success btn-md"
                       onClick={() => handleStatusChange(task.id, "Completed")}
+                      data-bs-dismiss="modal"
                     >
                       <i className="bi bi-check"></i>
                     </button>

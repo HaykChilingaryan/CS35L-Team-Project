@@ -7,9 +7,9 @@ import { getSessionUser } from "../../actions/auth/userUtils";
 import { logout } from "../../actions/auth/auth";
 
 const Sidebar = () => {
-  const [username, setUsername] = useState(null);
+  const [username, setUsername] = useState("");
   const location = useLocation();
-
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleProfileNavigation = () => {
@@ -27,15 +27,14 @@ const Sidebar = () => {
   const handleLogout = async () => {
     try {
       const response = await logout();
-
       if (response.ok) {
         setUsername("");
         navigate("/");
       } else {
-        console.error("Logout failed");
+        throw new Error("Logout Failed");
       }
     } catch (error) {
-      console.error("Error during logout:", error);
+      setError(error.message);
     }
   };
 
@@ -45,18 +44,17 @@ const Sidebar = () => {
         const response = await getSessionUser();
 
         if (!response.ok) {
-          return null;
+          throw new Error("Response was not ok");
         }
         const user = await response.json();
         setUsername(user.username);
       } catch (error) {
         setUsername("");
-        window.location.reload();
       }
     };
 
     getUser();
-  }, [location.pathname]);
+  }, [location.pathname, username]);
 
   return (
     <section>

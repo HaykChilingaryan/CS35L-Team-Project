@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to Taskify</title>
+  </head>
+  <body class="bg-light">
+    <div class="container">
+      <div class="card my-10">
+        <div class="card-body">
+          <h1 class="h3 mb-2">WELCOME {{user.first_name}}!</h1>
+          <h5 class="text-teal-700">Your Manager registered you to Taskify!</h5>
+          <hr />
+          <div class="space-y-3">
+            <p class="text-gray-700">
+              Welcome to Taskify – where productivity meets simplicity! We are
+              thrilled to have you on board and can't wait for you to experience
+              the power of streamlined task management. Taskify is designed to
+              make your life easier by helping you organize, prioritize, and
+              conquer your tasks effortlessly.
+            </p>
+            <br />
+            <p class="text-gray-700">
+              <b>Please use following Credentials to Login:</b><hr />
+              Username: <b> {{user.username}}</b>
+              Password: <b>{{raw_password}} </b>
+            </p>
+          </div>
+          <hr />
+          <a
+            class="btn btn-primary"
+            href="http://localhost:8000"
+            target="_blank"
+            >Login</a
+          >
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

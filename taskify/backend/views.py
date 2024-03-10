@@ -20,6 +20,9 @@ from django.contrib.auth.decorators import login_required
 import json
 from django.db.models.functions import Lower
 from django.db.models import Q
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 
 
@@ -33,16 +36,25 @@ class CompanyListView(APIView):
         serializer = CompanySerializer(companies, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class UserRegistrationView(APIView):
-    serializer_class = UserRegistrationSerializer
 
-    def post(self, request, format=None):
-        serializer = self.serializer_class(data=request.data)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user(request):
+    if request.method == 'POST':
+        serializer = UserSerializer(data=request.data)
+        raw_password = request.data.get('password')
         if serializer.is_valid():
-            serializer.save()
+            user = User.objects.create_user(**serializer.validated_data)
+
+            subject = 'Welcome to Taskify!'
+            message = render_to_string('welcome_email.html', {'user': user, 'raw_password': raw_password})
+            plain_message = strip_tags(message)
+            to_email = [user.email]
+            send_mail(subject, plain_message, None, to_email, html_message=message)
             return Response({'message': 'User successfully registered.'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 class UserListView(APIView):
     def get(self, request, format=None):
         users = User.objects.all()
@@ -51,7 +63,6 @@ class UserListView(APIView):
 
 @api_view(['POST'])
 @authentication_classes([SessionAuthentication])
-@login_required
 def logout_view(request):
     try:
         logout(request)
@@ -110,7 +121,7 @@ def get_user(request):
 
 @api_view(['GET', 'POST', 'PATCH'])
 @permission_classes([IsAuthenticated])
-def create_get_task(request):
+def task_request(request):
     try:
         user = request.user
         if not user:
@@ -130,7 +141,6 @@ def create_get_task(request):
                 return Response("Not Authorized to create Task", status=status.HTTP_403_FORBIDDEN)
 
         elif request.method == 'GET':
-
             ordering_param = request.query_params.get('ordering', 'title')
             ordering_field = ordering_param.lower()
             search_query = request.query_params.get('search', '')
@@ -217,33 +227,11 @@ def update_password(request):
         # Update the user's password
         user.set_password(new_password)
         user.save()
+        logout(request)
 
         return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
     else:
         return Response({'message': 'New password not provided'}, status=status.HTTP_400_BAD_REQUEST)
-    
-@api_view(['PATCH'])
-@permission_classes([IsAuthenticated])
-def update_task(request, task_id):
-    if request.method == 'PATCH':
-        task = get_object_or_404(Task, id=task_id)
-        data = json.loads(request.body.decode('utf-8'))
-
-        # Extract 'status' from the JSON data
-        new_title = data.get('title')
-        new_desc = data.get('new_description')
-        new_user = data.get('assigned_user')
-        new_due_date = data.get('due_date')
-
-        task.title = new_title
-        task.description = new_desc
-        task.assigned_user = new_user
-        task.due_date = new_due_date
-        task.save()
-        serializer = TaskSerializer(task)
-        return Response({'message': "Task successfully updated", 'task': serializer.data}, status=status.HTTP_200_OK)
-    else:
-        return Response({'message': 'Invalid request method'}, status=400)
 
 @api_view(['DELETE'])
 def delete_all_users(request):

@@ -44,3 +44,36 @@ export const getTasks = (filterValue, searchQuery) => {
     }
   );
 };
+
+export const createTask = (newTask) => {
+  return fetch("http://localhost:8000/backend/users/me/tasks/", {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Csrftoken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({
+      title: newTask.title,
+      description: newTask.description,
+      assigned_user: newTask.selectedUser,
+      due_date: newTask.dueDate,
+    }),
+  });
+};
+
+export const updateTask = (updatingTask) => {
+  return fetch("http://localhost:8000/backend/users/me/tasks/", {
+    method: "PATCH",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Csrftoken": getCookie("csrftoken"),
+    },
+    body: JSON.stringify({
+      id: updatingTask.id,
+      title: updatingTask.title,
+      description: updatingTask.description,
+    }),
+  });
+};

@@ -47,6 +47,9 @@ const CreateUserModal = ({ handleNewUserInput, handleCreateUser }) => {
                   name="password"
                   onChange={handleNewUserInput}
                 />
+                <p style={{ fontSize: 'small', color: 'grey' }}>
+                  Password must be at least 8 characters long
+                </p>
               </div>
               <div className="mb-3">
                 <label htmlFor="title" className="form-label">

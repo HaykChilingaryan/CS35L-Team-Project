@@ -22,6 +22,9 @@ Taskify is a Task Management website where managers of the companies can registe
 
 ## Running the Application
 
+> [!NOTE]
+> Because the application is standalone application all the secret keys are hardcoded. Please be cautious while using the application.
+
 ```
 git clone https://github.com/HaykChilingaryan/CS35L-Team-Project.git
 ```
@@ -48,10 +51,12 @@ cd taskify
 pip install -r requirements.txt
 python ./manage.py runserver localhost:8000
 ```
+> [!IMPORTANT]
+> If there is any issue with running the backend and frontend applications please Email to haykchilingaryan2002@gmail.com.
 
 Once both frontend and backend are up, the application will be hosted on localhost:8000
 
 > [!CAUTION]
-> Make sure to have localhost:8000 in the web instead of 127.0.0.1.
+> Make sure to have localhost:8000 in the web instead of 127.0.0.1:8000.
 
 

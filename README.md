@@ -57,6 +57,6 @@ python ./manage.py runserver localhost:8000
 Once both frontend and backend are up, the application will be hosted on localhost:8000
 
 > [!CAUTION]
-> Make sure to have localhost:8000 in the web instead of 127.0.0.1:8000.
+> Make sure to have localhost:8000 in the web instead of 127.0.0.1:8000 for authentication purposes.
 
 

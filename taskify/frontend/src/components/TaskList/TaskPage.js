@@ -208,7 +208,10 @@ const TaskPage = () => {
       const response = await register(newUser);
       const responseData = await response.json();
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        setError(responseData.message);
+        setTimeout(() => {
+          setError(null);
+        }, 10000);
       } else {
         setSuccessAndFade(responseData.message);
         fetchCompanyUsers(newUser.company);

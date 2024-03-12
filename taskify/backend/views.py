@@ -43,9 +43,10 @@ def register_user(request):
     if request.method == 'POST':
         serializer = UserSerializer(data=request.data)
         raw_password = request.data.get('password')
+        if len(raw_password) < 8:
+            return Response({'message': 'Password must be at least 8 characters long'}, status=status.HTTP_400_BAD_REQUEST)
         if serializer.is_valid():
             user = User.objects.create_user(**serializer.validated_data)
-
             subject = 'Welcome to Taskify!'
             message = render_to_string('welcome_email.html', {'user': user, 'raw_password': raw_password})
             plain_message = strip_tags(message)

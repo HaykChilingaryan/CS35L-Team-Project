@@ -23,7 +23,7 @@ Taskify is a Task Management website where managers of the companies can registe
 ## Running the Application
 
 > [!NOTE]
-> Because the application is standalone application all the secret keys are hardcoded. Please be cautious while using the application.
+> Because the application is standalone application only email api keys are hardcoded.
 
 ```
 git clone https://github.com/HaykChilingaryan/CS35L-Team-Project.git

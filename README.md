@@ -49,6 +49,8 @@ After the installation of neccessary packages backend will run on port localhost
 cd CS35L-Team-Project
 cd taskify
 pip install -r requirements.txt
+python manage.py makemigrations
+python manage.py migrate
 python ./manage.py runserver localhost:8000
 ```
 > [!IMPORTANT]

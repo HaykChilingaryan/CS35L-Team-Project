@@ -1,6 +1,10 @@
 import React from "react";
 
-const CreateUserModal = ({ handleNewUserInput, handleCreateUser }) => {
+const CreateUserModal = ({
+  newUser = {},
+  handleNewUserInput,
+  handleCreateUser,
+}) => {
   return (
     <div
       className="modal fade"
@@ -33,6 +37,7 @@ const CreateUserModal = ({ handleNewUserInput, handleCreateUser }) => {
                   className="form-control"
                   id="username"
                   name="username"
+                  value={newUser.username || ""}
                   onChange={handleNewUserInput}
                 />
               </div>
@@ -45,9 +50,10 @@ const CreateUserModal = ({ handleNewUserInput, handleCreateUser }) => {
                   className="form-control"
                   id="password"
                   name="password"
+                  value={newUser.password || ""}
                   onChange={handleNewUserInput}
                 />
-                <p style={{ fontSize: 'small', color: 'grey' }}>
+                <p style={{ fontSize: "small", color: "grey" }}>
                   Password must be at least 8 characters long
                 </p>
               </div>
@@ -60,6 +66,7 @@ const CreateUserModal = ({ handleNewUserInput, handleCreateUser }) => {
                   className="form-control"
                   id="firstName"
                   name="firstName"
+                  value={newUser.firstName || ""}
                   onChange={handleNewUserInput}
                 />
               </div>
@@ -72,6 +79,7 @@ const CreateUserModal = ({ handleNewUserInput, handleCreateUser }) => {
                   className="form-control"
                   id="lastName"
                   name="lastName"
+                  value={newUser.lastName || ""}
                   onChange={handleNewUserInput}
                 />
               </div>
@@ -84,6 +92,7 @@ const CreateUserModal = ({ handleNewUserInput, handleCreateUser }) => {
                   className="form-control"
                   id="email"
                   name="email"
+                  value={newUser.email || ""}
                   onChange={handleNewUserInput}
                 />
               </div>

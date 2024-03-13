@@ -124,6 +124,24 @@ const TaskPage = () => {
     }));
   };
 
+  const handleNewUserModalClose = () => {
+    setNewUser({
+      username: "",
+      password: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+    });
+  };
+
+  const handleNewTaskModalClose = () => {
+    setNewTask({
+      title: "",
+      description: "",
+      selectedUser: "",
+      dueDate: "",
+    });
+  };
   const fetchUserDetailsForTasks = async (taskList) => {
     try {
       const userDetailsPromises = taskList.map(async (task) => {
@@ -188,6 +206,7 @@ const TaskPage = () => {
       } else {
         fetchTasks();
         setSuccessAndFade(responseData.message);
+        handleNewTaskModalClose();
       }
     } catch (error) {
       setErrorAndFade(error.message);
@@ -215,6 +234,7 @@ const TaskPage = () => {
       } else {
         setSuccessAndFade(responseData.message);
         fetchCompanyUsers(newUser.company);
+        handleNewUserModalClose();
       }
     } catch (error) {
       setErrorAndFade(error.message);
@@ -532,6 +552,7 @@ const TaskPage = () => {
         handleCreateTask={handleCreateTask}
       />
       <CreateUserModal
+        newUser={newUser}
         handleNewUserInput={handleNewUserInput}
         handleCreateUser={handleCreateUser}
       />

@@ -2,7 +2,7 @@
 
 ## Taskify
 
-Taskify is a Task Management website where managers of the companies can register users, assign tasks to them, track the progress of those and view schedule view of the tasks. Regular users can view the tasks assigned to them and updatre their statuses if those are changed.
+Taskify is a Task Management website where managers of companies can register users, assign tasks to them, track the progress of those tasks, and view the "schedule view" of the tasks. Regular users can view the tasks assigned to them and update their statuses if those are changed.
 
 ## Key Features
 
@@ -10,13 +10,13 @@ Taskify is a Task Management website where managers of the companies can registe
   - Registration - Users get an email once their manager registers them to Taskify, which includes credentials
   - Login - Using credentials provided in the email
   - Logout - Finish user session
-- Task creation/deletion, assiginment to users, status update
+- Task creation/deletion, assignment to users, status update
 - Schedule view of tasks, showing dates when users have tasks due
 - Searching between the user tasks by the title or description
 - Sorting tasks in
   - Title order
   - Due date order
-  - Assignee Name order
+  - Assignee name order
 - Profile view
   - User information
   - Password change
@@ -24,7 +24,7 @@ Taskify is a Task Management website where managers of the companies can registe
 ## Running the Application
 
 > [!NOTE]
-> For the Api Keys please refer to the document sent in email by the subject - `Final Project credentials` from `chiling2002@g.ucla.edu`.
+> For the Api Keys please refer to the document sent in the email by the subject - `Final Project credentials` from `chiling2002@g.ucla.edu`.
 
 ```
 git clone https://github.com/HaykChilingaryan/CS35L-Team-Project.git
@@ -32,7 +32,7 @@ git clone https://github.com/HaykChilingaryan/CS35L-Team-Project.git
 
 ### Frontend
 
-After the installation of neccessary packages the frontend will run on port localhost:3000
+After the installation of neccessary packages, the frontend will run on port localhost:3000
 
 ```
 cd CS35L-Team-Project
@@ -44,7 +44,7 @@ npm run dev
 
 ### Backend
 
-After the installation of neccessary packages backend will run on port localhost:8000
+After the installation of neccessary packages, backend will run on port localhost:8000
 
 ```
 cd CS35L-Team-Project
@@ -56,7 +56,7 @@ python ./manage.py runserver localhost:8000
 ```
 
 > [!IMPORTANT]
-> If there is any issue with running the backend and frontend applications please Email to `haykchilingaryan2002@gmail.com`.
+> If there are any issues with running the backend and frontend applications, please Email `haykchilingaryan2002@gmail.com`.
 
 Once both frontend and backend are up, the application will be hosted on localhost:8000
 

@@ -3,6 +3,7 @@
 ## Taskify
 
 Taskify is a Task Management website where managers of companies can register users, assign tasks to them, track the progress of those tasks, and view the "schedule view" of the tasks. Regular users can view the tasks assigned to them and update their statuses if those are changed.
+```Repository link - https://github.com/HaykChilingaryan/CS35L-Team-Project.git```
 
 ## Key Features
 

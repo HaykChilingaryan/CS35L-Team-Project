@@ -21,6 +21,23 @@ Taskify is a Task Management website where managers of companies can register us
 - Profile view
   - User information
   - Password change
+ 
+## Member's Major Contributions:
+- Hayk Chilingaryan
+  - Backend/Frontend
+  - User Authentication
+  - Task List
+  - Side Bar
+  - Calendar View
+  - Profile Page
+- Albert Mkhitaryan
+  - Backend, Side Bar and Routing 
+- Eric Tran
+  - Frontend, Calendar View
+- Donna Wu
+  - Frontend, Profile Page
+- Adrian Pu
+  - Backend, Task Handling, User Registration  
 
 ## Running the Application
 

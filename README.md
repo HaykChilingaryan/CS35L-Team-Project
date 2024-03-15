@@ -22,7 +22,7 @@ Taskify is a Task Management website where managers of companies can register us
   - User information
   - Password change
  
-## Member's Major Contributions:
+## Member's Major Contributions
 - Hayk Chilingaryan
   - Backend/Frontend
   - User Authentication

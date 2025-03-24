@@ -74,7 +74,7 @@ python ./manage.py runserver localhost:8000
 ```
 
 > [!IMPORTANT]
-> If there are any issues with running the backend and frontend applications, please Email `haykchilingaryan2002@gmail.com`.
+> If there are any issues with running the backend and frontend applications, please Email `email`.
 
 Once both frontend and backend are up, the application will be hosted on localhost:8000
 

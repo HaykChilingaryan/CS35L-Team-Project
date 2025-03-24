@@ -42,7 +42,7 @@ Taskify is a Task Management website where managers of companies can register us
 ## Running the Application
 
 > [!NOTE]
-> For the Api Keys please refer to the document sent in the email by the subject - `Final Project credentials` from `chiling2002@g.ucla.edu`.
+> For the Api Keys please refer to the document sent in the email by the subject - `Final Project credentials` from `email`.
 
 ```
 git clone https://github.com/HaykChilingaryan/CS35L-Team-Project.git
